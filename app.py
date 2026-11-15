@@ -445,7 +445,7 @@ def render_header():
         <div style="background-color: #F9FAFB; border-left: 3px solid #D97706;
                     border-radius: 0 4px 4px 0; padding: 8px 12px; margin-bottom: 14px;
                     color: #4B5563; font-size: 0.82rem;">
-          ⚠️ <strong>Harmonization Notice:</strong> Applies an experimental <strong>6.5 MW FRP threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See Method & Limitations tab.
+          ⚠️ <strong>Harmonization Notice:</strong> Applies an experimental <strong>6.5 MW FRP threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See the methodology in the footer for more details.
         </div>
         """,
         unsafe_allow_html=True,
@@ -785,14 +785,16 @@ def render_daily_line(daily_f, region_name):
         paper_bgcolor=THEME["plotly_paper"],
         plot_bgcolor=THEME["plotly_plot"],
         legend=dict(
-            x=0.01,
-            y=0.99,
+            x=1.02,
+            y=1.0,
+            xanchor="left",
+            yanchor="top",
             font=dict(color=THEME["plotly_text"]),
             bgcolor=THEME["bg_card_solid"],
             bordercolor=THEME["border_card"],
             borderwidth=1,
         ),
-        margin=dict(l=50, r=40, t=45, b=45),
+        margin=dict(l=50, r=160, t=45, b=45),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
 
@@ -1286,19 +1288,19 @@ def render_method_box():
         st.markdown(
             r"""
             **Plain-Language Summary:**  
-            We count satellite-detected hotspots in California, 2020–2024, after filtering the more sensitive VIIRS sensor so it matches MODIS. MODIS is counted as-is; VIIRS is counted only if it is bright enough (at least 6.5 megawatts). This gives one combined daily count, with a historical median for comparison. The 6.5 threshold is experimental — it was fitted on California data from 2012–2013, and it does not correct for viewing angle or for how many satellites were flying in a given year.
+            We count satellite-detected hotspots in California, 2020–2024, after filtering the more sensitive VIIRS sensor so it matches MODIS. MODIS is counted as-is; VIIRS is counted only if it is above a calibrated threshold to keep the daily series comparable.
 
             ---
 
             **Harmonization Method:**
             - **MODIS C6.1 (Terra/Aqua):** Hotspots counted as-is (confidence $\ge 30$).
-            - **VIIRS NOAA-20/21:** Hotspots filtered with an **experimental 6.5 MW FRP threshold** (confidence $\ne$ 'l'). Faint hotspots below 6.5 MW are removed to calibrate VIIRS sensitivity to the pre-drift MODIS reference scale.
+            - **VIIRS NOAA-20/21:** Hotspots filtered with an **experimental 6.5 MW FRP threshold** (confidence $\ne$ 'l'). Faint hotspots below 6.5 MW are removed to calibrate VIIRS sensitivity to the MODIS baseline.
             - *Note:* The 6.5 MW threshold was fitted empirically on California 2012–2013 data; it is not yet globally validated.
 
             ---
 
             **Biome Stability Check (Sub-Region Transferability):**  
-            Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in fast-moving chaparral fires favouring VIIRS 375 m pixels.
+            Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in that biome.
 
             | Sub-Region / Biome | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio |
             | :--- | :---: | :---: | :---: | :---: |
@@ -1335,7 +1337,7 @@ def render_footer():
     st.markdown(
         """
         <div style="text-align: center; color: #6B7280; font-size: 0.82rem; margin-top: 28px; padding-top: 16px; border-top: 1px solid #E5E7EB;">
-          <strong>Sekhmet Sync</strong> • <a href="https://sekhmet-sync.streamlit.app/" target="_blank" style="color: #4B5563; text-decoration: none; font-weight: 500;">sekhmet-sync.streamlit.app</a><br>
+          <strong>Sekhmet Sync</strong> • <a href="https://sekhmet-sync.streamlit.app/" target="_blank" style="color: #4B5563; text-decoration: none; font-weight: 500;">sekhmet-sync.streamlit.app</a>
           <span style="font-size: 0.78rem; opacity: 0.85;">Data: NASA FIRMS (Public Domain) • California 2020–2024 Archive • No NASA logos used</span>
         </div>
         """,
