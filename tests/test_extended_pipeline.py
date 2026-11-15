@@ -181,3 +181,42 @@ def test_satnorm_equals_harmonised_in_modis_only_era(daily):
 def test_satnorm_lte_harmonised_in_viirs_era(daily):
     viirs = daily[(daily["date"].dt.year >= 2012) & (daily["harmonised_hotspots"] > 0)]
     assert (viirs["harmonised_hotspots_satnorm"] <= viirs["harmonised_hotspots"] + 0.01).all()
+
+
+# --- 9. In-App Horizon Toggle ---
+
+def test_app_test_horizon_toggle():
+    """Verify in-app switching between Core Baseline and 25-Yr Climatology."""
+    from streamlit.testing.v1 import AppTest
+
+    app = AppTest.from_file("app.py", default_timeout=30)
+    app.run()
+    assert not app.exception
+
+    # Locate horizon radio in sidebar
+    horizon_radios = [r for r in app.sidebar.radio if "Climatology" in str(r.options)]
+    assert len(horizon_radios) == 1, "Expected horizon selector in sidebar"
+    h_radio = horizon_radios[0]
+
+    # Switch to 25-Yr Climatology
+    h_radio.set_value(h_radio.options[1]).run()
+    assert not app.exception
+
+    # Harmonised hotspots must reflect the 25-year total (704,911)
+    metrics_map = {m.label: m.value for m in app.metric}
+    assert metrics_map.get("Harmonised Hotspots") == "704,911"
+    assert metrics_map.get("Peak Day") == "2020-09-09"
+
+    # Verify calendar options update to 25 years
+    cal_radios = [r for r in app.radio if "Daily Matrix" in str(r.options)]
+    assert len(cal_radios) >= 1
+    cal_radio = cal_radios[0]
+    assert "25×366" in cal_radio.options[0]
+    assert "25×12" in cal_radio.options[1]
+
+    # Test monthly heatmap and daily line under extended horizon
+    cal_radio.set_value(cal_radio.options[1]).run()
+    assert not app.exception
+    cal_radio.set_value(cal_radio.options[2]).run()
+    assert not app.exception
+

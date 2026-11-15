@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sekhmet Sync — Concept B: Mission Control / Live Telemetry</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #1C1B1A;
+    background-image:
+      radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.08), transparent 35%),
+      radial-gradient(circle at 85% 80%, rgba(168, 46, 46, 0.10), transparent 40%);
+    color: #E8DCC4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 18px;
+    gap: 10px;
+  }
+  *:focus-visible {
+    outline: 2px solid #D4AF37;
+    outline-offset: 2px;
+  }
+  .glass {
+    background: rgba(232, 220, 196, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.38);
+    border-radius: 8px;
+  }
+  /* Top Telemetry Bar */
+  .topbar {
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sys-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #D4AF37;
+    letter-spacing: 0.05em;
+  }
+  .telemetry-tag {
+    background: rgba(46, 111, 64, 0.25);
+    border: 1px solid #2E6F40;
+    color: #E8DCC4;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #D4AF37;
+    box-shadow: 0 0 8px #D4AF37;
+    animation: blink 0.75s infinite alternate;
+  }
+  @keyframes blink {
+    from { opacity: 0.35; transform: scale(0.85); }
+    to   { opacity: 1.0; transform: scale(1.15); }
+  }
+  .region-pills {
+    display: flex;
+    gap: 6px;
+  }
+  .r-pill {
+    background: rgba(232, 220, 196, 0.08);
+    color: #D8C3A5;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.73rem;
+    cursor: pointer;
+    transition: all 180ms ease;
+  }
+  .r-pill:hover, .r-pill.active {
+    background: rgba(212, 175, 55, 0.22);
+    color: #E8DCC4;
+    border-color: #D4AF37;
+    font-weight: 700;
+  }
+  /* Tabs + KPI Strip */
+  .nav-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+  }
+  .t-item {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #D8C3A5;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms ease;
+  }
+  .t-item:hover {
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #E8DCC4;
+  }
+  .t-item.active {
+    background: rgba(168, 46, 46, 0.35);
+    border-color: #D4AF37;
+    color: #D4AF37;
+    font-weight: 700;
+  }
+  .window-readout {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #D8C3A5;
+  }
+  /* 4 Live-Counting KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .kpi-box {
+    padding: 10px 14px;
+    position: relative;
+    transition: border-color 200ms ease;
+  }
+  .kpi-box:hover {
+    border-color: #D4AF37;
+  }
+  .k-title {
+    font-size: 0.70rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #D8C3A5;
+  }
+  .k-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #D4AF37;
+    font-family: monospace;
+    margin-top: 3px;
+  }
+  .k-meta {
+    font-size: 0.72rem;
+    color: #E8DCC4;
+    margin-top: 2px;
+  }
+  /* Main Telemetry Deck */
+  .deck {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .deck-panel {
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+  }
+  .p-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .p-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #D4AF37;
+    letter-spacing: 0.03em;
+  }
+  /* Animated SVG Anomaly Chart */
+  .chart-box {
+    background: rgba(28, 27, 26, 0.65);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 6px;
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .anomaly-line {
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: drawLine 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+  }
+  .streak-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.73rem;
+    margin-top: 8px;
+    font-family: monospace;
+  }
+  .streak-table th {
+    text-align: left;
+    color: #D4AF37;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 4px 6px;
+  }
+  .streak-table td {
+    padding: 5px 6px;
+    color: #E8DCC4;
+    border-bottom: 1px solid rgba(232, 220, 196, 0.1);
+  }
+  /* Situational Awareness Live Feed Panel */
+  .feed-banner {
+    background: rgba(168, 46, 46, 0.22);
+    border-left: 3px solid #D4AF37;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: #E8DCC4;
+  }
+  .feed-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .f-stat {
+    background: rgba(28, 27, 26, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    border-radius: 5px;
+    padding: 8px 10px;
+  }
+  .f-lbl { font-size: 0.68rem; color: #D8C3A5; text-transform: uppercase; }
+  .f-val { font-size: 0.92rem; color: #D4AF37; font-weight: 800; font-family: monospace; margin-top: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot, .anomaly-line { animation: none !important; stroke-dashoffset: 0 !important; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar glass">
+    <div class="title-group">
+      <span class="sys-title">🔥 SEKHMET SYNC // MISSION TELEMETRY</span>
+      <span class="telemetry-tag"><span class="live-dot"></span>ARCHIVE VERIFIED: 1,827 DAYS (0 MISSING)</span>
+    </div>
+    <div class="region-pills">
+      <button class="r-pill active">CA Statewide</button>
+      <button class="r-pill">Northern Forests</button>
+      <button class="r-pill">Sierra Nevada</button>
+      <button class="r-pill">Southern Chaparral</button>
+      <button class="r-pill">Custom BBox</button>
+    </div>
+  </header>
+
+  <nav class="nav-strip glass">
+    <div class="tabs">
+      <button class="t-item">📅 Burning Calendar</button>
+      <button class="t-item">🗺️ Spatial Footprint</button>
+      <button class="t-item active">📈 Anomaly Analysis</button>
+      <button class="t-item">📡 Situational Awareness</button>
+      <button class="t-item">❓ Why Harmonisation</button>
+    </div>
+    <div class="window-readout">
+      DOMAIN: [32.5°N–42.0°N, -124.5°W–-114.0°W] • THRESHOLD: VIIRS FRP ≥ 6.5 MW
+    </div>
+  </nav>
+
+  <section class="kpi-grid">
+    <div class="kpi-box glass">
+      <div class="k-title">In-State Raw Detections</div>
+      <div class="k-num" data-target="722596">722,596</div>
+      <div class="k-meta">● MODIS: 113,795 | ▲ VIIRS: 608,801</div>
+    </div>
+    <div class="kpi-box glass">
+      <div class="k-title">Harmonised Hotspots</div>
+      <div class="k-num" data-target="347174">347,174</div>
+      <div class="k-meta">● MODIS: 113,795 | ▲ VIIRS ≥6.5MW: 233,379</div>
+    </div>
+    <div class="kpi-box glass">
+      <div class="k-title">Sub-Threshold Filtered</div>
+      <div class="k-num" data-target="375422">375,422 (52.0%)</div>
+      <div class="k-meta">61.7% of raw VIIRS (&lt; 6.5 MW) removed</div>
+    </div>
+    <div class="kpi-box glass">
+      <div class="k-title">Peak Anomaly Event</div>
+      <div class="k-num" data-target="10320">10,320 (2020-09-09)</div>
+      <div class="k-meta">+10,183 above 5-Yr DOY median</div>
+    </div>
+  </section>
+
+  <main class="deck">
+    <div class="deck-panel glass">
+      <div class="p-head">
+        <span class="p-title">DAILY HARMONISED HOTSPOTS VS. 5-YEAR MEDIAN (2020–2024)</span>
+        <span style="font-size:0.72rem;color:#D8C3A5;font-family:monospace;">CORE SEASON: JUL 11 – OCT 3 (85 DAYS • 80% OF BURNING)</span>
+      </div>
+      <div class="chart-box">
+        <svg viewBox="0 0 680 185" width="100%" height="185" aria-label="Anomaly Telemetry Line Chart">
+          <!-- Grid lines -->
+          <line x1="40" y1="25" x2="660" y2="25" stroke="rgba(232,220,196,0.12)" />
+          <line x1="40" y1="75" x2="660" y2="75" stroke="rgba(232,220,196,0.12)" />
+          <line x1="40" y1="125" x2="660" y2="125" stroke="rgba(232,220,196,0.12)" />
+          <line x1="40" y1="160" x2="660" y2="160" stroke="rgba(212,175,55,0.4)" />
+          <text x="6" y="28" fill="#D8C3A5" font-size="9" font-family="monospace">10k</text>
+          <text x="6" y="78" fill="#D8C3A5" font-size="9" font-family="monospace">5k</text>
+          <text x="6" y="128" fill="#D8C3A5" font-size="9" font-family="monospace">1k</text>
+          <text x="14" y="162" fill="#D8C3A5" font-size="9" font-family="monospace">0</text>
+
+          <!-- 5-Year Historical Median Baseline (Malachite #2E6F40 dashed) -->
+          <path d="M 40,158 L 95,156 L 135,142 L 165,157 L 215,156 L 255,140 L 290,157 L 340,156 L 380,143 L 415,157 L 465,156 L 505,142 L 540,157 L 600,155 L 630,143 L 660,158"
+                fill="none" stroke="#2E6F40" stroke-width="2" stroke-dasharray="5,4" />
+
+          <!-- Shaded Crimson Anomaly Fill -->
+          <path d="M 40,158 L 105,155 L 122,85 L 134,18 L 148,95 L 165,157 L 235,155 L 252,48 L 268,72 L 285,156 L 365,155 L 382,132 L 400,157 L 490,155 L 506,120 L 525,157 L 610,154 L 624,98 L 642,156 L 660,158 Z"
+                fill="rgba(168, 46, 46, 0.28)" />
+
+          <!-- Animated Harmonised Line (Crimson #A82E2E / Gold #D4AF37) -->
+          <path class="anomaly-line"
+                d="M 40,158 L 105,155 L 122,85 L 134,18 L 148,95 L 165,157 L 235,155 L 252,48 L 268,72 L 285,156 L 365,155 L 382,132 L 400,157 L 490,155 L 506,120 L 525,157 L 610,154 L 624,98 L 642,156 L 660,158"
+                fill="none" stroke="#D4AF37" stroke-width="2.2" />
+
+          <!-- Peak Star Marker -->
+          <circle cx="134" cy="18" r="5" fill="#A82E2E" stroke="#D4AF37" stroke-width="1.5" />
+          <text x="144" y="22" fill="#D4AF37" font-size="10" font-weight="bold" font-family="monospace">★ 2020-09-09: 10,320 hotspots</text>
+          <circle cx="252" cy="48" r="4.5" fill="#A82E2E" stroke="#D4AF37" stroke-width="1.2" />
+          <text x="262" y="52" fill="#E8DCC4" font-size="9.5" font-family="monospace">2021-08-18 (Dixie Surge)</text>
+
+          <!-- X Axis Labels -->
+          <text x="110" y="176" fill="#D8C3A5" font-size="9.5" font-family="monospace">2020</text>
+          <text x="235" y="176" fill="#D8C3A5" font-size="9.5" font-family="monospace">2021</text>
+          <text x="365" y="176" fill="#D8C3A5" font-size="9.5" font-family="monospace">2022</text>
+          <text x="490" y="176" fill="#D8C3A5" font-size="9.5" font-family="monospace">2023</text>
+          <text x="615" y="176" fill="#D8C3A5" font-size="9.5" font-family="monospace">2024</text>
+        </svg>
+
+        <table class="streak-table">
+          <thead>
+            <tr>
+              <th>SUSTAINED CRITICAL OUTBREAK STREAK</th>
+              <th>START – END DATE</th>
+              <th>DURATION</th>
+              <th>TOTAL HOTSPOTS</th>
+              <th>INCIDENT CORRELATION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:#D4AF37;font-weight:bold;">#1 Sustained Streak (&gt;3× Median)</td>
+              <td>2021-08-01 → 2021-08-23</td>
+              <td>23 Days</td>
+              <td>48,049</td>
+              <td>Dixie Fire (963,309 ac)</td>
+            </tr>
+            <tr>
+              <td style="color:#D4AF37;font-weight:bold;">#2 Sustained Streak (&gt;3× Median)</td>
+              <td>2020-08-30 → 2020-09-19</td>
+              <td>21 Days</td>
+              <td>66,764</td>
+              <td>August Complex &amp; Creek Fire</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="deck-panel glass">
+      <div class="p-head">
+        <span class="p-title">📡 SITUATIONAL AWARENESS // LIVE NRT FEED</span>
+        <span class="telemetry-tag"><span class="live-dot"></span>STANDBY (0 API CALLS ON LOAD)</span>
+      </div>
+      <div class="feed-banner">
+        <strong>⚠️ PROVISIONAL NRT DATA — SITUATIONAL AWARENESS ONLY</strong><br>
+        NRT active fire detections are processed within 1–3 hours using predicted satellite ephemeris. Standard Processing (SP) replaces NRT after orbital calibration. Do not mix NRT with SP 2020–2024 multi-year trend analysis.
+      </div>
+      <div class="feed-stats">
+        <div class="f-stat">
+          <div class="f-lbl">Core Season Concentration</div>
+          <div class="f-val">80% in 85 Days</div>
+          <div style="font-size:0.68rem;color:#D8C3A5;">Jul 11 (DOY 192) – Oct 3 (DOY 276)</div>
+        </div>
+        <div class="f-stat">
+          <div class="f-lbl">Biome Ratio (VIIRS/MODIS)</div>
+          <div class="f-val">1.98 vs 2.01</div>
+          <div style="font-size:0.68rem;color:#D8C3A5;">Northern Forests vs Sierra Nevada</div>
+        </div>
+        <div class="f-stat">
+          <div class="f-lbl">● MODIS Reference</div>
+          <div class="f-val">113,795 Kept</div>
+          <div style="font-size:0.68rem;color:#D8C3A5;">Confidence ≥ 30 (Terra + Aqua)</div>
+        </div>
+        <div class="f-stat">
+          <div class="f-lbl">▲ VIIRS Thresholded</div>
+          <div class="f-val">233,379 Kept</div>
+          <div style="font-size:0.68rem;color:#D8C3A5;">FRP ≥ 6.5 MW (NOAA-20 / NOAA-21)</div>
+        </div>
+      </div>
+      <div style="background:rgba(28,27,26,0.75);border:1px solid rgba(212,175,55,0.3);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:0.76rem;font-weight:700;color:#E8DCC4;">Live FIRMS Area API Query (30-Day Rolling)</div>
+          <div style="font-size:0.68rem;color:#D8C3A5;">Sources: MODIS_NRT, VIIRS_SNPP_NRT, VIIRS_NOAA20_NRT, VIIRS_NOAA21_NRT</div>
+        </div>
+        <button style="background:#D4AF37;color:#1C1B1A;border:none;padding:7px 12px;border-radius:5px;font-weight:800;font-size:0.75rem;cursor:pointer;">🔄 Fetch Live FIRMS NRT</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 800ms count-up animation for telemetry KPIs
+    document.querySelectorAll('.k-num[data-target]').forEach(el => {
+      const target = parseInt(el.getAttribute('data-target'), 10);
+      const suffix = el.textContent.includes('%') ? ' (52.0%)' : (el.textContent.includes('2020') ? ' (2020-09-09)' : '');
+      const duration = 750;
+      const start = performance.now();
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const val = Math.floor(p * target);
+        el.textContent = val.toLocaleString() + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  </script>
+</body>
+</html>

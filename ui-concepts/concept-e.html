@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sekhmet Sync — Concept E: Pyro-Spectra // Infrared Observatory</title>
+<style>
+  :root {
+    --bg-obsidian: #07090E;
+    --bg-panel: #0E131F;
+    --bg-recessed: #131B2E;
+    --border-subtle: rgba(148, 163, 184, 0.16);
+    --border-highlight: rgba(245, 158, 11, 0.45);
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --modis-cyan: #06B6D4;
+    --viirs-amber: #F59E0B;
+    --pyro-vermilion: #FF4D2A;
+    --pyro-crimson: #E11D48;
+    --median-emerald: #10B981;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-obsidian);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(255, 77, 42, 0.09), transparent 45%),
+      radial-gradient(ellipse at 85% 100%, rgba(6, 182, 212, 0.08), transparent 45%);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 18px;
+    gap: 10px;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--modis-cyan);
+    outline-offset: 2px;
+  }
+  /* Top Instrument Header */
+  .inst-header {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-top: 2px solid var(--pyro-vermilion);
+    border-radius: 8px;
+    padding: 9px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .brand-cluster {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--pyro-vermilion), var(--pyro-crimson));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    box-shadow: 0 0 14px rgba(255, 77, 42, 0.45);
+  }
+  .app-name {
+    font-size: 1.18rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .spec-pill {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    background: rgba(6, 182, 212, 0.14);
+    color: var(--modis-cyan);
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .app-sub {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+  /* 5 Required Tabs in Instrument Dock */
+  .tab-dock {
+    display: flex;
+    background: var(--bg-obsidian);
+    padding: 3px;
+    border-radius: 7px;
+    border: 1px solid var(--border-subtle);
+    gap: 4px;
+  }
+  .tab-item {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tab-item:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .tab-item.active {
+    background: linear-gradient(90deg, rgba(255, 77, 42, 0.22), rgba(225, 29, 72, 0.22));
+    color: #FFFFFF;
+    border: 1px solid var(--pyro-vermilion);
+    font-weight: 700;
+  }
+  /* Control & Signal Gate Bar */
+  .gate-bar {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 7px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .region-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .r-btn {
+    background: var(--bg-recessed);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms ease;
+  }
+  .r-btn:hover { border-color: var(--text-muted); color: #FFF; }
+  .r-btn.active {
+    background: var(--modis-cyan);
+    color: #07090E;
+    border-color: var(--modis-cyan);
+    font-weight: 800;
+  }
+  .frp-gate-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--bg-recessed);
+    padding: 4px 12px;
+    border-radius: 5px;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+  .gate-meter {
+    width: 110px;
+    height: 7px;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+  }
+  .gate-kept {
+    width: 48%;
+    background: linear-gradient(90deg, var(--modis-cyan), var(--viirs-amber));
+  }
+  /* 4 Telemetry KPI Cards */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .kpi-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 9px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 200ms ease, border-color 200ms ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--modis-cyan);
+  }
+  .k-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+  .k-val {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.42rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-top: 2px;
+  }
+  .k-sub {
+    font-family: var(--font-mono);
+    font-size: 0.69rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .k-badge {
+    font-family: var(--font-mono);
+    font-size: 0.70rem;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-weight: 700;
+    text-align: right;
+  }
+  /* Main Studio Grid */
+  .studio-grid {
+    display: grid;
+    grid-template-columns: 1.62fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .obs-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 11px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+  }
+  .p-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .p-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* 5x366 High-Density Thermal Barcode */
+  .barcode-box {
+    background: var(--bg-obsidian);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 8px 10px 6px 10px;
+  }
+  .b-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .b-yr {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    width: 36px;
+  }
+  .b-track {
+    display: grid;
+    grid-template-columns: repeat(72, 1fr);
+    gap: 1.5px;
+    flex: 1;
+    height: 15px;
+  }
+  .b-cell {
+    border-radius: 1.5px;
+    opacity: 0;
+    transform: scaleY(0.3);
+    animation: specIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .b-peak {
+    box-shadow: 0 0 8px #FFFBEB, 0 0 3px var(--pyro-vermilion);
+    z-index: 2;
+  }
+  @keyframes specIn {
+    to { opacity: 1; transform: scaleY(1); }
+  }
+  /* 5x12 Monthly Rollup Matrix */
+  .monthly-box {
+    background: var(--bg-obsidian);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-top: 6px;
+  }
+  .m-grid {
+    display: grid;
+    grid-template-columns: 36px repeat(12, 1fr);
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 3.5px;
+  }
+  .m-grid:last-child { margin-bottom: 0; }
+  .m-hdr {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    color: var(--text-muted);
+    text-align: center;
+    font-weight: 700;
+  }
+  .m-box {
+    height: 20px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Bottom Streak & Seasonality Readout */
+  .critical-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .c-pill {
+    background: var(--bg-recessed);
+    border-left: 3px solid var(--pyro-vermilion);
+    border-radius: 4px;
+    padding: 5px 8px;
+  }
+  .c-lbl { font-size: 0.64rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+  .c-val { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-primary); font-weight: 800; margin-top: 1px; }
+  /* Right Panel: Spatial Observatory & Anomaly Vector */
+  .map-viewport {
+    background: var(--bg-obsidian);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radar-ring {
+    animation: radarPulse 0.8s infinite alternate ease-in-out;
+    transform-origin: center;
+  }
+  @keyframes radarPulse {
+    from { opacity: 0.30; stroke-width: 1px; }
+    to   { opacity: 0.90; stroke-width: 2.5px; }
+  }
+  .biome-card {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(14, 19, 31, 0.92);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.45;
+  }
+  .sensor-dock {
+    background: var(--bg-recessed);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.69rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .b-cell, .radar-ring { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="inst-header">
+    <div class="brand-cluster">
+      <div class="logo-mark">🔥</div>
+      <div>
+        <div class="app-name">
+          <span>SEKHMET SYNC</span>
+          <span class="spec-pill">MWIR 3.9µm // FRP ≥ 6.5 MW HARMONIZED</span>
+        </div>
+        <div class="app-sub">California Satellite Active-Fire Harmonization Observatory • 2020–2024 Archive (1,827 Continuous Days • 0 Missing)</div>
+      </div>
+    </div>
+
+    <nav class="tab-dock" aria-label="Primary Views">
+      <button class="tab-item active">📅 Burning Calendar</button>
+      <button class="tab-item">🗺️ Spatial Footprint</button>
+      <button class="tab-item">📈 Anomaly Analysis</button>
+      <button class="tab-item">📡 Situational Awareness</button>
+      <button class="tab-item">❓ Why Harmonisation</button>
+    </nav>
+  </header>
+
+  <!-- Sub-Region Selector + Radiometric Cutoff Gate -->
+  <section class="gate-bar">
+    <div class="region-group">
+      <span style="font-size:0.70rem;color:var(--text-muted);font-weight:700;margin-right:4px;">DOMAIN:</span>
+      <button class="r-btn active">California — Statewide</button>
+      <button class="r-btn">Northern Forests (182,441)</button>
+      <button class="r-btn">Sierra Nevada (73,757)</button>
+      <button class="r-btn">Southern Chaparral (25,549)</button>
+      <button class="r-btn">Custom Lat/Lon BBox</button>
+    </div>
+
+    <div class="frp-gate-pill">
+      <span style="color:var(--viirs-amber);font-weight:700;">SIGNAL GATE (VIIRS FRP ≥ 6.5 MW):</span>
+      <div class="gate-meter"><div class="gate-kept"></div></div>
+      <span style="color:var(--text-primary);">r = 0.9974 vs. MODIS | 2020-01-01 → 2024-12-31</span>
+    </div>
+  </section>
+
+  <!-- 4 Reconciled Telemetry KPIs -->
+  <section class="kpi-strip">
+    <div class="kpi-card">
+      <div>
+        <div class="k-label">In-State Raw Detections</div>
+        <div class="k-val">722,596</div>
+        <div class="k-sub">● MODIS: 113,795 | ▲ VIIRS: 608,801</div>
+      </div>
+      <div class="k-badge" style="background:rgba(148,163,184,0.12);color:var(--text-secondary);">5.35× Raw<br>Ratio</div>
+    </div>
+
+    <div class="kpi-card">
+      <div>
+        <div class="k-label">Harmonised Hotspots</div>
+        <div class="k-val" style="color:var(--modis-cyan);">347,174</div>
+        <div class="k-sub">● MODIS: 113,795 | ▲ VIIRS ≥6.5MW: 233,379</div>
+      </div>
+      <div class="k-badge" style="background:rgba(6,182,212,0.14);color:var(--modis-cyan);">100% In-State<br>Reconciled</div>
+    </div>
+
+    <div class="kpi-card">
+      <div>
+        <div class="k-label">Filtered Sub-Threshold</div>
+        <div class="k-val" style="color:var(--viirs-amber);">52.0%</div>
+        <div class="k-sub">375,422 faint VIIRS (&lt; 6.5 MW) stripped</div>
+      </div>
+      <div class="k-badge" style="background:rgba(245,158,11,0.14);color:var(--viirs-amber);">61.7% of<br>Raw VIIRS</div>
+    </div>
+
+    <div class="kpi-card">
+      <div>
+        <div class="k-label">Statewide Peak Day</div>
+        <div class="k-val" style="color:var(--pyro-vermilion);">2020-09-09</div>
+        <div class="k-sub">10,320 harmonised hotspots (+10,183 anom)</div>
+      </div>
+      <div class="k-badge" style="background:rgba(225,29,72,0.18);color:#FDA4AF;">DOY 253<br>August Cplx</div>
+    </div>
+  </section>
+
+  <!-- Main Synchronized Dual-Scale Horizon Deck + Spatial Observatory -->
+  <main class="studio-grid">
+    <div class="obs-panel">
+      <div>
+        <div class="p-hdr">
+          <div class="p-title">
+            <span>SYNCHRONIZED MULTI-SCALE BURNING CALENDAR (DAILY 5×366 + MONTHLY 5×12)</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--viirs-amber);">
+            ★ WHITE-HOT PEAK: 2020-09-09 (10,320 HOTSPOTS)
+          </span>
+        </div>
+
+        <!-- 5x366 High-Resolution Thermal Barcode -->
+        <div class="barcode-box">
+          <div class="b-row"><span class="b-yr">2020</span><div class="b-track"><div class="b-cell" style="background:#1E293B;animation-delay:0.000s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.006s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.012s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.018s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.024s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.030s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.036s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.042s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.048s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.054s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.060s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.066s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.072s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.078s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.084s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.090s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.096s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.102s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.108s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.114s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.120s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.126s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.132s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.138s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.144s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.150s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.156s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.162s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.168s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.174s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.180s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.186s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.192s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.198s"></div><div class="b-cell" style="background:#263554;animation-delay:0.204s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.210s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.216s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.222s"></div><div class="b-cell" style="background:#263554;animation-delay:0.228s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.234s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.240s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.246s"></div><div class="b-cell" style="background:#263554;animation-delay:0.252s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.258s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.264s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.270s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.276s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.282s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.288s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.294s"></div><div class="b-cell b-peak" style="background:#FFFBEB;animation-delay:0.300s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.306s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.312s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.318s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.324s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.330s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.336s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.342s"></div><div class="b-cell" style="background:#263554;animation-delay:0.348s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.354s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.360s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.366s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.372s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.378s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.384s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.390s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.396s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.402s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.408s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.414s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.420s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.426s"></div></div></div>
+<div class="b-row"><span class="b-yr">2021</span><div class="b-track"><div class="b-cell" style="background:#1E293B;animation-delay:0.025s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.031s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.037s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.043s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.049s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.055s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.061s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.067s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.073s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.079s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.085s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.091s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.097s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.103s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.109s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.115s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.121s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.127s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.133s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.139s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.145s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.151s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.157s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.163s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.169s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.175s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.181s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.187s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.193s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.199s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.205s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.211s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.217s"></div><div class="b-cell" style="background:#263554;animation-delay:0.223s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.229s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.235s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.241s"></div><div class="b-cell" style="background:#263554;animation-delay:0.247s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.253s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.259s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.265s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.271s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.277s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.283s"></div><div class="b-cell" style="background:#E11D48;animation-delay:0.289s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.295s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.301s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.307s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.313s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.319s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.325s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.331s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.337s"></div><div class="b-cell" style="background:#263554;animation-delay:0.343s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.349s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.355s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.361s"></div><div class="b-cell" style="background:#263554;animation-delay:0.367s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.373s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.379s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.385s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.391s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.397s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.403s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.409s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.415s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.421s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.427s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.433s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.439s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.445s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.451s"></div></div></div>
+<div class="b-row"><span class="b-yr">2022</span><div class="b-track"><div class="b-cell" style="background:#1E293B;animation-delay:0.050s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.056s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.062s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.068s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.074s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.080s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.086s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.092s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.098s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.104s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.110s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.116s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.122s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.128s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.134s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.140s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.146s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.152s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.158s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.164s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.170s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.176s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.182s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.188s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.194s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.200s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.206s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.212s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.218s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.224s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.230s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.236s"></div><div class="b-cell" style="background:#263554;animation-delay:0.242s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.248s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.254s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.260s"></div><div class="b-cell" style="background:#263554;animation-delay:0.266s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.272s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.278s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.284s"></div><div class="b-cell" style="background:#263554;animation-delay:0.290s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.296s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.302s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.308s"></div><div class="b-cell" style="background:#263554;animation-delay:0.314s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.320s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.326s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.332s"></div><div class="b-cell" style="background:#263554;animation-delay:0.338s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.344s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.350s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.356s"></div><div class="b-cell" style="background:#263554;animation-delay:0.362s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.368s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.374s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.380s"></div><div class="b-cell" style="background:#263554;animation-delay:0.386s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.392s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.398s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.404s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.410s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.416s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.422s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.428s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.434s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.440s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.446s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.452s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.458s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.464s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.470s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.476s"></div></div></div>
+<div class="b-row"><span class="b-yr">2023</span><div class="b-track"><div class="b-cell" style="background:#1E293B;animation-delay:0.075s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.081s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.087s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.093s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.099s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.105s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.111s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.117s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.123s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.129s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.135s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.141s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.147s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.153s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.159s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.165s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.171s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.177s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.183s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.189s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.195s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.201s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.207s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.213s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.219s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.225s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.231s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.237s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.243s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.249s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.255s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.261s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.267s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.273s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.279s"></div><div class="b-cell" style="background:#263554;animation-delay:0.285s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.291s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.297s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.303s"></div><div class="b-cell" style="background:#263554;animation-delay:0.309s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.315s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.321s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.327s"></div><div class="b-cell" style="background:#263554;animation-delay:0.333s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.339s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.345s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.351s"></div><div class="b-cell" style="background:#263554;animation-delay:0.357s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.363s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.369s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.375s"></div><div class="b-cell" style="background:#263554;animation-delay:0.381s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.387s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.393s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.399s"></div><div class="b-cell" style="background:#263554;animation-delay:0.405s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.411s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.417s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.423s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.429s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.435s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.441s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.447s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.453s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.459s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.465s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.471s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.477s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.483s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.489s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.495s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.501s"></div></div></div>
+<div class="b-row"><span class="b-yr">2024</span><div class="b-track"><div class="b-cell" style="background:#1E293B;animation-delay:0.100s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.106s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.112s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.118s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.124s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.130s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.136s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.142s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.148s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.154s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.160s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.166s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.172s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.178s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.184s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.190s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.196s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.202s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.208s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.214s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.220s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.226s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.232s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.238s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.244s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.250s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.256s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.262s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.268s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.274s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.280s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.286s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.292s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.298s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.304s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.310s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.316s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.322s"></div><div class="b-cell" style="background:#FF4D2A;animation-delay:0.328s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.334s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.340s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.346s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.352s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.358s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.364s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.370s"></div><div class="b-cell" style="background:#263554;animation-delay:0.376s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.382s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.388s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.394s"></div><div class="b-cell" style="background:#263554;animation-delay:0.400s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.406s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.412s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.418s"></div><div class="b-cell" style="background:#263554;animation-delay:0.424s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.430s"></div><div class="b-cell" style="background:#F59E0B;animation-delay:0.436s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.442s"></div><div class="b-cell" style="background:#263554;animation-delay:0.448s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.454s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.460s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.466s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.472s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.478s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.484s"></div><div class="b-cell" style="background:#1E293B;animation-delay:0.490s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.496s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.502s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.508s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.514s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.520s"></div><div class="b-cell" style="background:#131B2E;animation-delay:0.526s"></div></div></div>
+        </div>
+
+        <!-- 5x12 Monthly Rollup Matrix -->
+        <div class="monthly-box">
+          <div class="m-grid m-hdr"><span class="b-yr">YEAR</span><span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUN</span><span>JUL</span><span>AUG</span><span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span></div>
+<div class="m-grid"><span class="b-yr">2020</span><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">180</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">310</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">240</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">290</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">820</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">2.4k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">6.1k</div><div class="m-box" style="background:#EA580C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">41.8k</div><div class="m-box" style="background:#E11D48;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">79.4k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">7.1k</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.1k</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">322</div></div>
+<div class="m-grid"><span class="b-yr">2021</span><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">290</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">195</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">310</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">540</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.1k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">3.8k</div><div class="m-box" style="background:#EA580C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">18.9k</div><div class="m-box" style="background:#E11D48;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">66.7k</div><div class="m-box" style="background:#EA580C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">24.2k</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">2.9k</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">680</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">298</div></div>
+<div class="m-grid"><span class="b-yr">2022</span><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">210</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">340</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">410</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">380</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">690</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.5k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">3.9k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">3.4k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">4.1k</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">610</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">190</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">117</div></div>
+<div class="m-grid"><span class="b-yr">2023</span><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">140</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">190</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">230</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">390</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">780</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.4k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">4.2k</div><div class="m-box" style="background:#EA580C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">9.8k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">5.4k</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">3.1k</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">980</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">396</div></div>
+<div class="m-grid"><span class="b-yr">2024</span><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">175</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">220</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">310</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">460</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.2k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">4.9k</div><div class="m-box" style="background:#EA580C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.22)">19.7k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">8.6k</div><div class="m-box" style="background:#B45309;color:#FFFFFF;border:1px solid rgba(148,163,184,0.12)">6.2k</div><div class="m-box" style="background:#1E293B;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">1.8k</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">490</div><div class="m-box" style="background:#131B2E;color:#94A3B8;border:1px solid rgba(148,163,184,0.12)">251</div></div>
+        </div>
+      </div>
+
+      <!-- Critical Streaks & Season Window -->
+      <div class="critical-strip">
+        <div class="c-pill" style="border-left-color:var(--median-emerald);">
+          <div class="c-lbl">Core Fire Season (10th–90th %ile)</div>
+          <div class="c-val">July 11 – Oct 3 (85 Days)</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);">Concentrates 80% of all California burning</div>
+        </div>
+        <div class="c-pill">
+          <div class="c-lbl">Longest Critical Streak (&gt;3× Median)</div>
+          <div class="c-val">23 Days: Aug 1–23, 2021</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);">48,049 hotspots • Dixie Fire (963,309 ac)</div>
+        </div>
+        <div class="c-pill" style="border-left-color:var(--pyro-crimson);">
+          <div class="c-lbl">Highest Volume Outbreak Streak</div>
+          <div class="c-val">21 Days: Aug 30–Sep 19, 2020</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);">66,764 hotspots • August &amp; North Complex</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Spatial Footprint + Biome Ratios -->
+    <div class="obs-panel">
+      <div class="p-hdr">
+        <div class="p-title">SPATIAL FOOTPRINT &amp; BIOME TRANSFERABILITY</div>
+        <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--modis-cyan);">32.5°N–42.0°N, -124.5°W–-114.0°W</span>
+      </div>
+
+      <div class="map-viewport">
+        <svg viewBox="0 0 320 270" width="100%" height="100%" aria-label="California Infrared Hotspot Map">
+          <!-- Coordinate Graticules -->
+          <line x1="60" y1="0" x2="60" y2="270" stroke="rgba(148,163,184,0.08)" />
+          <line x1="140" y1="0" x2="140" y2="270" stroke="rgba(148,163,184,0.08)" />
+          <line x1="220" y1="0" x2="220" y2="270" stroke="rgba(148,163,184,0.08)" />
+          <line x1="0" y1="70" x2="320" y2="70" stroke="rgba(148,163,184,0.08)" />
+          <line x1="0" y1="150" x2="320" y2="150" stroke="rgba(148,163,184,0.08)" />
+          <line x1="0" y1="230" x2="320" y2="230" stroke="rgba(148,163,184,0.08)" />
+
+          <!-- California Vector Outline -->
+          <path d="M 55,18 L 138,18 L 138,90 L 222,190 L 200,252 L 148,256 L 96,198 L 54,122 L 40,62 Z"
+                fill="#131B2E" stroke="#475569" stroke-width="1.8" />
+
+          <!-- Multi-Ring Radar Outbreak Zones -->
+          <circle class="radar-ring" cx="82" cy="56" r="16" fill="rgba(225,29,72,0.18)" stroke="#E11D48" />
+          <circle class="radar-ring" cx="122" cy="82" r="14" fill="rgba(255,77,42,0.18)" stroke="#FF4D2A" />
+          <circle class="radar-ring" cx="148" cy="136" r="13" fill="rgba(245,158,11,0.18)" stroke="#F59E0B" />
+          <circle class="radar-ring" cx="168" cy="218" r="10" fill="rgba(225,29,72,0.16)" stroke="#E11D48" />
+
+          <!-- MODIS Detections (Cyan Circles ●) -->
+          <circle cx="78" cy="54" r="4" fill="#06B6D4" stroke="#07090E" stroke-width="0.9" />
+          <circle cx="118" cy="80" r="4" fill="#06B6D4" stroke="#07090E" stroke-width="0.9" />
+          <circle cx="144" cy="134" r="3.8" fill="#06B6D4" stroke="#07090E" stroke-width="0.9" />
+          <circle cx="72" cy="108" r="3.5" fill="#06B6D4" stroke="#07090E" stroke-width="0.9" />
+
+          <!-- VIIRS Detections >= 6.5 MW (Amber Triangles ▲) -->
+          <polygon points="87,49 92,59 82,59" fill="#F59E0B" stroke="#07090E" stroke-width="0.8" />
+          <polygon points="127,76 132,86 122,86" fill="#F59E0B" stroke="#07090E" stroke-width="0.8" />
+          <polygon points="153,130 158,140 148,140" fill="#F59E0B" stroke="#07090E" stroke-width="0.8" />
+          <polygon points="170,212 175,222 165,222" fill="#F59E0B" stroke="#07090E" stroke-width="0.8" />
+
+          <!-- Callouts -->
+          <text x="98" y="45" fill="#F8FAFC" font-size="8" font-family="monospace" font-weight="bold">AUGUST COMPLEX (2020)</text>
+          <text x="136" y="75" fill="#F8FAFC" font-size="8" font-family="monospace" font-weight="bold">DIXIE FIRE (2021)</text>
+          <text x="160" y="135" fill="#CBD5E1" font-size="8" font-family="monospace">CREEK FIRE (2020)</text>
+        </svg>
+
+        <div class="biome-card">
+          <div style="color:var(--viirs-amber);font-weight:700;margin-bottom:2px;">BIOME VIIRS/MODIS RATIO</div>
+          <div>Northern Forests: <strong>1.98</strong></div>
+          <div>Sierra Nevada:    <strong>2.01</strong></div>
+          <div>So. Chaparral:    <strong>2.48</strong></div>
+          <div style="color:var(--text-muted);margin-top:2px;">3-Biome Sub: 281,747</div>
+        </div>
+      </div>
+
+      <div class="sensor-dock">
+        <span style="color:var(--modis-cyan);font-weight:700;">● MODIS (Circle): 113,795</span>
+        <span style="color:var(--viirs-amber);font-weight:700;">▲ VIIRS ≥6.5MW (Triangle): 233,379</span>
+        <span style="color:var(--median-emerald);font-weight:700;">― 5-Yr Median</span>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

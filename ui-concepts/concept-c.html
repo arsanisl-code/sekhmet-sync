@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sekhmet Sync — Concept C: Minimal Scientific / Fluid Morph</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #E8DCC4;
+    color: #1C1B1A;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 36px;
+    gap: 16px;
+  }
+  *:focus-visible {
+    outline: 2px solid #1B365D;
+    outline-offset: 2px;
+  }
+  /* Editorial Top Bar */
+  .top-editorial {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.5px solid #1C1B1A;
+    padding-bottom: 12px;
+  }
+  .journal-tag {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5E4605;
+    font-weight: 800;
+  }
+  .main-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #1C1B1A;
+    letter-spacing: -0.02em;
+    margin-top: 2px;
+  }
+  /* Pill Navigation for 5 Tabs */
+  .tab-pills {
+    display: flex;
+    background: #D8C3A5;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(28, 27, 26, 0.2);
+    gap: 4px;
+  }
+  .pill-tab {
+    border: none;
+    background: transparent;
+    color: #1C1B1A;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .pill-tab:hover {
+    background: rgba(28, 27, 26, 0.08);
+  }
+  .pill-tab.active {
+    background: #1C1B1A;
+    color: #E8DCC4;
+    font-weight: 700;
+  }
+  /* Sliding Region Selector + KPI Summary Strip */
+  .control-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .region-slider {
+    display: flex;
+    background: #D8C3A5;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(28, 27, 26, 0.18);
+    gap: 4px;
+  }
+  .reg-pill {
+    border: none;
+    background: transparent;
+    color: #1C1B1A;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 220ms ease;
+  }
+  .reg-pill.active {
+    background: #5E4605;
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+  .inline-metrics {
+    display: flex;
+    gap: 22px;
+    align-items: center;
+  }
+  .im-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .im-lbl {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #5E4605;
+    font-weight: 800;
+  }
+  .im-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1C1B1A;
+  }
+  /* Centerpiece Fluid Morph Stage */
+  .morph-stage {
+    background: #D8C3A5;
+    border: 1px solid rgba(28, 27, 26, 0.22);
+    border-radius: 12px;
+    padding: 18px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+  }
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stage-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #1C1B1A;
+  }
+  .stage-sub {
+    font-size: 0.78rem;
+    color: #5E4605;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .morph-toggle {
+    display: flex;
+    background: #E8DCC4;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid #5E4605;
+  }
+  .m-btn {
+    border: none;
+    background: transparent;
+    color: #1C1B1A;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 220ms ease;
+  }
+  .m-btn.active {
+    background: #1C1B1A;
+    color: #E8DCC4;
+  }
+  /* 5x12 Monthly Heatmap Rollup with smooth scale entrance */
+  .monthly-container {
+    background: #E8DCC4;
+    border: 1px solid rgba(28, 27, 26, 0.18);
+    border-radius: 8px;
+    padding: 12px 16px;
+    animation: fluidMorph 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes fluidMorph {
+    0%   { opacity: 0.2; transform: scale(0.97); }
+    100% { opacity: 1.0; transform: scale(1.0); }
+  }
+  .m-row {
+    display: grid;
+    grid-template-columns: 48px repeat(12, 1fr);
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .m-row:last-child { margin-bottom: 0; }
+  .m-head {
+    margin-bottom: 8px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #5E4605;
+    text-align: center;
+  }
+  .yr-lbl {
+    font-size: 0.80rem;
+    font-weight: 800;
+    color: #1C1B1A;
+  }
+  .m-cell {
+    height: 36px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.76rem;
+    font-weight: 800;
+    border: 1px solid rgba(28, 27, 26, 0.15);
+    transition: transform 180ms ease;
+  }
+  .m-cell:hover {
+    transform: scale(1.06);
+    border-color: #1C1B1A;
+    z-index: 2;
+  }
+  /* Scientific Footnote & Season Summary */
+  .sci-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(28, 27, 26, 0.2);
+    padding-top: 10px;
+    font-size: 0.76rem;
+  }
+  .legend-pills {
+    display: flex;
+    gap: 14px;
+    font-weight: 700;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .monthly-container { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <header class="top-editorial">
+    <div>
+      <div class="journal-tag">NASA Space Apps 2026 • Empirical Sensor Harmonization Study (2020–2024)</div>
+      <h1 class="main-title">Sekhmet Sync — California Burning Activity Calendar</h1>
+    </div>
+    <nav class="tab-pills" aria-label="Main Tabs">
+      <button class="pill-tab active">📅 Burning Calendar</button>
+      <button class="pill-tab">🗺️ Spatial Footprint</button>
+      <button class="pill-tab">📈 Anomaly Analysis</button>
+      <button class="pill-tab">📡 Situational Awareness</button>
+      <button class="pill-tab">❓ Why Harmonisation</button>
+    </nav>
+  </header>
+
+  <section class="control-bar">
+    <div class="region-slider" role="radiogroup" aria-label="Region Selector">
+      <button class="reg-pill active">California — Statewide</button>
+      <button class="reg-pill">Northern Forests</button>
+      <button class="reg-pill">Sierra Nevada / Central</button>
+      <button class="reg-pill">Southern Chaparral</button>
+      <button class="reg-pill">Custom BBox</button>
+    </div>
+
+    <div class="inline-metrics">
+      <div class="im-item">
+        <span class="im-lbl">Raw Hotspots</span>
+        <span class="im-val">722,596</span>
+      </div>
+      <div class="im-item">
+        <span class="im-lbl">Harmonised (≥6.5 MW)</span>
+        <span class="im-val">347,174</span>
+      </div>
+      <div class="im-item">
+        <span class="im-lbl">Filtered Faint VIIRS</span>
+        <span class="im-val">52.0% (375,422)</span>
+      </div>
+      <div class="im-item">
+        <span class="im-lbl">Peak Day (2020-09-09)</span>
+        <span class="im-val">10,320</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="morph-stage">
+    <div class="stage-header">
+      <div>
+        <div class="stage-title">Monthly Burning Activity Rollup (5×12 Matrix) — Smooth Fluid Morph View</div>
+        <div class="stage-sub">Core Fire Season Window: July 11 – Oct 3 (85 days • 80% of activity) • 1,827 Continuous Days Verified</div>
+      </div>
+      <div class="morph-toggle">
+        <button class="m-btn">📅 Daily Matrix (5×366)</button>
+        <button class="m-btn active">🗓️ Monthly Heatmap (5×12)</button>
+        <button class="m-btn">📈 Daily Line vs. Median</button>
+      </div>
+    </div>
+
+    <div class="monthly-container">
+      <div class="m-row m-head"><span class="yr-lbl">Year</span><span class="m-hdr">Jan</span><span class="m-hdr">Feb</span><span class="m-hdr">Mar</span><span class="m-hdr">Apr</span><span class="m-hdr">May</span><span class="m-hdr">Jun</span><span class="m-hdr">Jul</span><span class="m-hdr">Aug</span><span class="m-hdr">Sep</span><span class="m-hdr">Oct</span><span class="m-hdr">Nov</span><span class="m-hdr">Dec</span></div>
+<div class="m-row"><span class="yr-lbl">2020</span><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.00s">180</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.02s">310</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.04s">240</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.06s">290</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.08s">820</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.10s">2.4k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.12s">6.1k</div><div class="m-cell" style="background:#A82E2E;color:#FFFFFF;animation-delay:0.14s">41.8k</div><div class="m-cell" style="background:#8B1E1E;color:#FFFFFF;animation-delay:0.16s">79.4k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.18s">7.1k</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.20s">1.1k</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.22s">322</div></div>
+<div class="m-row"><span class="yr-lbl">2021</span><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.04s">290</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.06s">195</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.08s">310</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.10s">540</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.12s">1.1k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.14s">3.8k</div><div class="m-cell" style="background:#A82E2E;color:#FFFFFF;animation-delay:0.16s">18.9k</div><div class="m-cell" style="background:#8B1E1E;color:#FFFFFF;animation-delay:0.18s">66.7k</div><div class="m-cell" style="background:#A82E2E;color:#FFFFFF;animation-delay:0.20s">24.2k</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.22s">2.9k</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.24s">680</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.26s">298</div></div>
+<div class="m-row"><span class="yr-lbl">2022</span><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.08s">210</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.10s">340</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.12s">410</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.14s">380</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.16s">690</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.18s">1.5k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.20s">3.9k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.22s">3.4k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.24s">4.1k</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.26s">610</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.28s">190</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.30s">117</div></div>
+<div class="m-row"><span class="yr-lbl">2023</span><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.12s">140</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.14s">190</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.16s">230</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.18s">390</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.20s">780</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.22s">1.4k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.24s">4.2k</div><div class="m-cell" style="background:#A82E2E;color:#FFFFFF;animation-delay:0.26s">9.8k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.28s">5.4k</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.30s">3.1k</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.32s">980</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.34s">396</div></div>
+<div class="m-row"><span class="yr-lbl">2024</span><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.16s">175</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.18s">220</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.20s">310</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.22s">460</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.24s">1.2k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.26s">4.9k</div><div class="m-cell" style="background:#A82E2E;color:#FFFFFF;animation-delay:0.28s">19.7k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.30s">8.6k</div><div class="m-cell" style="background:#C68B25;color:#1C1B1A;animation-delay:0.32s">6.2k</div><div class="m-cell" style="background:#D8C3A5;color:#1C1B1A;animation-delay:0.34s">1.8k</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.36s">490</div><div class="m-cell" style="background:#E8DCC4;color:#1C1B1A;animation-delay:0.38s">251</div></div>
+    </div>
+
+    <footer class="sci-footer">
+      <div class="legend-pills">
+        <span style="color:#1B365D;">● MODIS Reference: 113,795 (conf ≥ 30)</span>
+        <span style="color:#5E4605;">▲ VIIRS Harmonised: 233,379 (FRP ≥ 6.5 MW)</span>
+        <span style="color:#2E6F40;">― 5-Yr Median Baseline</span>
+      </div>
+      <div>
+        <strong>Critical Streaks:</strong> 23-day Aug 1–23, 2021 (Dixie: 48,049) • 21-day Aug 30 – Sep 19, 2020 (August Complex: 66,764)
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -49,9 +49,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-DAILY_CSV = APP_DIR / "data" / "daily_series_harmonised.csv"
-DETECTIONS_CSV = APP_DIR / "data" / "harmonised_detections.csv"
+DAILY_CSV_CORE = APP_DIR / "data" / "daily_series_harmonised.csv"
+DETECTIONS_CSV_CORE = APP_DIR / "data" / "harmonised_detections.csv"
+DAILY_CSV_EXTENDED = APP_DIR / "data" / "daily_series_harmonised_extended.csv"
+DETECTIONS_CSV_EXTENDED = APP_DIR / "data" / "harmonised_detections_extended.csv"
 DISCONTINUITY_PNG = APP_DIR / "exports" / "discontinuity.png"
+
+# Default for backward compatibility
+DAILY_CSV = DAILY_CSV_CORE
+DETECTIONS_CSV = DETECTIONS_CSV_CORE
 
 # ---------------------------------------------------------------------------
 # Sub-region bounding boxes (Single source of truth)
@@ -130,21 +136,27 @@ GLOBAL_CSS = """
 # ---------------------------------------------------------------------------
 
 @st.cache_data(show_spinner="Loading statewide daily series …")
-def load_statewide_daily():
-    if not DAILY_CSV.exists():
+def load_statewide_daily(is_extended: bool = False):
+    csv_path = DAILY_CSV_EXTENDED if is_extended else DAILY_CSV_CORE
+    if not csv_path.exists():
+        csv_path = DAILY_CSV_CORE
+    if not csv_path.exists():
         return None
-    df = pd.read_csv(DAILY_CSV, parse_dates=["date"])
+    df = pd.read_csv(csv_path, parse_dates=["date"])
     for col in ["raw_modis_hotspots", "raw_viirs_hotspots", "harmonised_hotspots",
-                "median_hotspots", "anomaly_hotspots"]:
+                "median_hotspots", "anomaly_hotspots", "harmonised_hotspots_satnorm"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     return df
 
 @st.cache_data(show_spinner="Loading harmonised detections dataset …")
-def load_detections():
-    if not DETECTIONS_CSV.exists():
+def load_detections(is_extended: bool = False):
+    csv_path = DETECTIONS_CSV_EXTENDED if is_extended else DETECTIONS_CSV_CORE
+    if not csv_path.exists():
+        csv_path = DETECTIONS_CSV_CORE
+    if not csv_path.exists():
         return None
-    df = pd.read_csv(DETECTIONS_CSV, parse_dates=["date"])
+    df = pd.read_csv(csv_path, parse_dates=["date"])
     df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
     df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     df["frp"] = pd.to_numeric(df["frp"], errors="coerce").fillna(0)
@@ -250,16 +262,17 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
 # Header
 # ---------------------------------------------------------------------------
 
-def render_header():
+def render_header(is_extended: bool = False):
+    sub = "California 2000–2024 Multi-Decadal Archive" if is_extended else "California 2020–2024"
     st.markdown(
-        """
+        f"""
         <div style="background-color:#1C1B1A;border-bottom:2px solid #D4AF37;
                     padding:16px 24px;margin-bottom:0">
           <span style="color:#D4AF37;font-size:1.6rem;font-weight:700">
             🔥 Sekhmet Sync
           </span>
           <span style="color:#D4AF37;font-size:1.0rem;margin-left:12px">
-            — Harmonized Satellite Hotspot Activity Calendar (California 2020–2024)
+            — Harmonized Satellite Hotspot Activity Calendar ({sub})
           </span>
         </div>
         """,
@@ -278,6 +291,19 @@ def render_header():
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
+    st.sidebar.markdown("## Archive Horizon")
+    scope_choice = st.sidebar.radio(
+        "Temporal Scope",
+        options=[
+            "🔥 Core Baseline (2020–2024)",
+            "🛰️ 25-Yr Climatology (2000–2024)",
+        ],
+        index=0,
+        help="Core Baseline: 5-year frozen benchmark (347k harmonised, 1,827 days). 25-Yr Climatology: Full multi-decadal series (705k harmonised, 8,828 continuous days) across MODIS and VIIRS constellations.",
+    )
+    is_extended = "2000" in scope_choice
+
+    st.sidebar.markdown("---")
     st.sidebar.markdown("## Region & Timeframe")
 
     region_choice = st.sidebar.selectbox(
@@ -317,17 +343,19 @@ def render_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Date Range")
 
+    min_year = 2000 if is_extended else 2020
+    max_year = 2024
     start_date = st.sidebar.date_input(
         "Start Date",
-        value=date(2020, 1, 1),
-        min_value=date(2020, 1, 1),
-        max_value=date(2024, 12, 31),
+        value=date(min_year, 1, 1),
+        min_value=date(min_year, 1, 1),
+        max_value=date(max_year, 12, 31),
     )
     end_date = st.sidebar.date_input(
         "End Date",
-        value=date(2024, 12, 31),
-        min_value=date(2020, 1, 1),
-        max_value=date(2024, 12, 31),
+        value=date(max_year, 12, 31),
+        min_value=date(min_year, 1, 1),
+        max_value=date(max_year, 12, 31),
     )
 
     if start_date > end_date:
@@ -335,16 +363,28 @@ def render_sidebar():
         end_date = start_date
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown(
-        "**Sensors in Archive:**\n"
-        "- MODIS C6.1 (Terra + Aqua)\n"
-        "- VIIRS NOAA-20 (375 m)\n"
-        "- VIIRS NOAA-21 (from 2023-03-01)\n\n"
-        "**Harmonization Threshold:**\n"
-        "`VIIRS FRP >= 6.5 MW` (experimental)"
-    )
+    if is_extended:
+        st.sidebar.markdown(
+            "**Sensors in Archive (2000–2024):**\n"
+            "- MODIS Terra (from 2000-11)\n"
+            "- MODIS Aqua (from 2002-07)\n"
+            "- VIIRS Suomi-NPP (from 2012-01)\n"
+            "- VIIRS NOAA-20 (from 2018-01)\n"
+            "- VIIRS NOAA-21 (from 2023-03)\n\n"
+            "**Harmonization Threshold:**\n"
+            "`VIIRS FRP >= 6.5 MW` + Constellation Normalisation (`satnorm`)"
+        )
+    else:
+        st.sidebar.markdown(
+            "**Sensors in Archive:**\n"
+            "- MODIS C6.1 (Terra + Aqua)\n"
+            "- VIIRS NOAA-20 (375 m)\n"
+            "- VIIRS NOAA-21 (from 2023-03-01)\n\n"
+            "**Harmonization Threshold:**\n"
+            "`VIIRS FRP >= 6.5 MW` (experimental)"
+        )
 
-    return region_choice, custom_bounds, (start_date, end_date)
+    return region_choice, custom_bounds, (start_date, end_date), is_extended
 
 # ---------------------------------------------------------------------------
 # Stat Cards
@@ -396,14 +436,15 @@ def get_plotly_config(filename="chart"):
 
 
 def render_daily_matrix(daily_f, region_name):
-    """Render 5x366 Daily Burning Activity Calendar Matrix."""
-    years = [2020, 2021, 2022, 2023, 2024]
+    """Render Daily Burning Activity Calendar Matrix."""
     d = daily_f.copy()
     d["year"] = d["date"].dt.year
     d["doy"] = d["date"].dt.dayofyear
+    years = sorted(d["year"].unique()) if not d.empty else [2020, 2021, 2022, 2023, 2024]
+    n_years = len(years)
 
-    # Build 5x366 matrix
-    matrix = np.full((5, 366), np.nan)
+    # Build n_years x 366 matrix
+    matrix = np.full((n_years, 366), np.nan)
     for i, yr in enumerate(years):
         sub = d[d["year"] == yr]
         for _, row in sub.iterrows():
@@ -458,8 +499,9 @@ def render_daily_matrix(daily_f, region_name):
             borderwidth=1,
         )
 
+    calc_height = max(290, min(750, n_years * 20 + 190))
     fig.update_layout(
-        title=dict(text=f"Burning Activity Calendar (Daily 5×366) — {region_name}", font=dict(color="#1C1B1A", size=13)),
+        title=dict(text=f"Burning Activity Calendar (Daily {n_years}×366) — {region_name}", font=dict(color="#1C1B1A", size=13)),
         xaxis=dict(
             tickmode="array",
             tickvals=[ms + 10 for ms in month_starts],
@@ -470,29 +512,32 @@ def render_daily_matrix(daily_f, region_name):
         yaxis=dict(tickfont=dict(color="#1C1B1A"), autorange="reversed"),
         paper_bgcolor="#E8DCC4",
         plot_bgcolor="#E8DCC4",
-        height=290,
+        height=calc_height,
         margin=dict(l=50, r=60, t=45, b=30),
     )
 
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"daily_calendar_{region_name}"))
+    min_yr = min(years)
+    max_yr = max(years)
+    yr_str = f"{min_yr}–{max_yr}" if min_yr != max_yr else f"{min_yr}"
     st.caption(
-        "Rows = years 2020–2024. Columns = day-of-year 1–366. "
+        f"Rows = years ({yr_str}). Columns = day-of-year 1–366. "
         "Papyrus cells = zero hotspots detected. Grey cells (DOY 366 in non-leap years) = no data."
     )
 
 
 def render_monthly_heatmap(daily_f, region_name):
-    """Render 5x12 Monthly Burning Activity Heatmap showing macro trends and seasonal patterns."""
-    years = [2020, 2021, 2022, 2023, 2024]
-    months = list(range(1, 13))
-    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
+    """Render Monthly Burning Activity Heatmap showing macro trends and seasonal patterns."""
     d = daily_f.copy()
     d["year"] = d["date"].dt.year
     d["month"] = d["date"].dt.month
+    years = sorted(d["year"].unique()) if not d.empty else [2020, 2021, 2022, 2023, 2024]
+    n_years = len(years)
+    months = list(range(1, 13))
+    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
     monthly_agg = d.groupby(["year", "month"])["harmonised_hotspots"].sum().reset_index()
-    matrix = np.zeros((len(years), 12))
+    matrix = np.zeros((n_years, 12))
     text_matrix = []
 
     for i, yr in enumerate(years):
@@ -523,7 +568,7 @@ def render_monthly_heatmap(daily_f, region_name):
         y=[str(yr) for yr in years],
         text=text_matrix,
         texttemplate="%{text}",
-        textfont=dict(size=11, color="#1C1B1A"),
+        textfont=dict(size=10 if n_years > 10 else 11, color="#1C1B1A"),
         colorscale=sekhmet_colorscale,
         colorbar=dict(title="Hotspots / Mo", tickfont=dict(color="#1C1B1A")),
         xgap=2,
@@ -532,19 +577,23 @@ def render_monthly_heatmap(daily_f, region_name):
         hovertemplate="Year: %{y}<br>Month: %{x}<br>Harmonised Hotspots: %{z:,.0f}<extra></extra>",
     ))
 
+    calc_height = max(310, min(800, n_years * 22 + 200))
     fig.update_layout(
-        title=dict(text=f"Monthly Burning Activity Calendar (5×12) — {region_name}", font=dict(color="#1C1B1A", size=13)),
+        title=dict(text=f"Monthly Burning Activity Calendar ({n_years}×12) — {region_name}", font=dict(color="#1C1B1A", size=13)),
         xaxis=dict(title="Month", tickfont=dict(color="#1C1B1A")),
         yaxis=dict(title="Year", tickfont=dict(color="#1C1B1A"), autorange="reversed"),
         paper_bgcolor="#E8DCC4",
         plot_bgcolor="#E8DCC4",
-        height=310,
+        height=calc_height,
         margin=dict(l=50, r=60, t=45, b=40),
     )
 
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"monthly_heatmap_{region_name}"))
+    min_yr = min(years)
+    max_yr = max(years)
+    yr_str = f"{min_yr}–{max_yr}" if min_yr != max_yr else f"{min_yr}"
     st.caption(
-        "Rows = years 2020–2024. Columns = months Jan–Dec. "
+        f"Rows = years ({yr_str}). Columns = months Jan–Dec. "
         "Cell values display total monthly harmonised hotspots (k = thousands). "
         "Provides an overview of seasonal wildfire concentration (Aug–Oct) and multi-year climate trends."
     )
@@ -582,11 +631,11 @@ def render_daily_line(daily_f, region_name):
         name="Below median",
     ))
 
-    # 5-Year Median line (Malachite dashed)
+    # Reference Median line (Malachite dashed)
     fig.add_trace(go.Scatter(
         x=d["date"],
         y=d["median_hotspots"],
-        name="Reference Median (2020–2024)",
+        name="Reference Median",
         line=dict(color="#2E6F40", width=2.2, dash="dash"),
     ))
 
@@ -597,6 +646,16 @@ def render_daily_line(daily_f, region_name):
         name="Harmonised Hotspots",
         line=dict(color="#1C1B1A", width=1.6),
     ))
+
+    # Satellite-Normalized trace (satnorm) if present in dataset
+    if "harmonised_hotspots_satnorm" in d.columns and d["harmonised_hotspots_satnorm"].sum() > 0:
+        fig.add_trace(go.Scatter(
+            x=d["date"],
+            y=d["harmonised_hotspots_satnorm"],
+            name="Satellite-Normalized (satnorm)",
+            line=dict(color="#C68B25", width=1.4, dash="dot"),
+            visible="legendonly",
+        ))
 
     # Top 5 anomaly days (Deep Crimson stars)
     top5 = d.nlargest(5, "anomaly_hotspots")
@@ -616,7 +675,7 @@ def render_daily_line(daily_f, region_name):
         height=360,
         paper_bgcolor="#E8DCC4",
         plot_bgcolor="#E8DCC4",
-        legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
+        legend=dict(x=0.99, y=0.99, xanchor="right", yanchor="top", font=dict(color="#1C1B1A")),
         margin=dict(l=50, r=40, t=45, b=45),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
@@ -624,20 +683,22 @@ def render_daily_line(daily_f, region_name):
 
 def render_calendar(daily_f, region_name):
     """Burning Activity Calendar container with multi-scale views."""
+    years = sorted(daily_f["date"].dt.year.unique()) if not daily_f.empty else [2020, 2021, 2022, 2023, 2024]
+    n_years = len(years)
     cal_mode = st.radio(
         "Calendar View",
         [
-            "📅 Daily Matrix (5×366)",
-            "🗓️ Monthly Heatmap (5×12)",
+            f"📅 Daily Matrix ({n_years}×366)",
+            f"🗓️ Monthly Heatmap ({n_years}×12)",
             "📈 Daily Line (Hotspots vs. Median)",
         ],
         horizontal=True,
-        help="Select view: 5×366 daily matrix for intra-season ignition spikes, 5×12 monthly rollup for macro seasonal trends, or daily line chart for unusual fire days.",
+        help="Select view: daily matrix for intra-season ignition spikes, monthly rollup for macro seasonal trends, or daily line chart for unusual fire days.",
     )
 
-    if cal_mode == "📅 Daily Matrix (5×366)":
+    if cal_mode.startswith("📅 Daily Matrix"):
         render_daily_matrix(daily_f, region_name)
-    elif cal_mode == "🗓️ Monthly Heatmap (5×12)":
+    elif cal_mode.startswith("🗓️ Monthly Heatmap"):
         render_monthly_heatmap(daily_f, region_name)
     else:
         render_daily_line(daily_f, region_name)
@@ -1035,6 +1096,20 @@ def render_why_harmonisation(daily_f):
         - Faint VIIRS hotspots with FRP < 6.5 MW are filtered out.
         - The remaining VIIRS hotspots match the observation scale of pre-drift MODIS (r=0.9974).
         - Result: A consistent daily time series where emergency managers can track fire regimes across sensor eras.
+
+        ---
+
+        ### Multi-Decadal Constellation Evolution (2000–2024)
+        Over 25 years, the operational satellite constellation evolved through four distinct eras:
+
+        | Era / Constellation Phase | Span | Operational Satellites | Harmonisation Mechanism |
+        | :--- | :---: | :--- | :--- |
+        | **Era 1: Terra-Only** | 2000–2002 | Terra (MODIS) | Native MODIS C6.1 baseline (1.0 sat-norm) |
+        | **Era 2: MODIS Tandem** | 2002–2011 | Terra + Aqua (MODIS) | 2-satellite MODIS constellation baseline |
+        | **Era 3: S-NPP Bridge** | 2012–2017 | Terra + Aqua + Suomi-NPP | VIIRS FRP ≥ 6.5 MW thresholding |
+        | **Era 4: Modern Constellation** | 2018–2024 | Terra, Aqua, NOAA-20, NOAA-21 | VIIRS FRP ≥ 6.5 MW + Satellite-Hour Scaling (`satnorm`) |
+
+        When examining multi-decadal climatologies, **satellite-hour normalisation (`satnorm`)** balances the expansion from 1 polar orbiter in 2000 to 4 concurrent polar orbiters in 2024.
         """
     )
 
@@ -1201,11 +1276,12 @@ def render_method_box():
 # Footer
 # ---------------------------------------------------------------------------
 
-def render_footer():
+def render_footer(is_extended: bool = False):
+    sub = "California 2000–2024 (25-Yr Climatology)" if is_extended else "California 2020–2024"
     st.markdown(
-        "<p style='text-align:center;color:#4A4744;font-size:0.8em;margin-top:16px'>"
-        "Sekhmet Sync | Data: NASA FIRMS (public domain) | "
-        "California 2020–2024 | No NASA logos used"
+        f"<p style='text-align:center;color:#4A4744;font-size:0.8em;margin-top:16px'>"
+        f"Sekhmet Sync | Data: NASA FIRMS (public domain) | "
+        f"{sub} | No NASA logos used"
         "</p>",
         unsafe_allow_html=True,
     )
@@ -1216,12 +1292,12 @@ def render_footer():
 
 def main():
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-    render_header()
 
-    region_choice, custom_bounds, date_range = render_sidebar()
+    region_choice, custom_bounds, date_range, is_extended = render_sidebar()
+    render_header(is_extended=is_extended)
 
-    daily_statewide = load_statewide_daily()
-    detections = load_detections()
+    daily_statewide = load_statewide_daily(is_extended=is_extended)
+    detections = load_detections(is_extended=is_extended)
 
     if daily_statewide is None or detections is None:
         st.error("Missing harmonised datasets in `data/`. Run `python build_daily_harmonized.py` first.")
@@ -1292,7 +1368,7 @@ def main():
     else:
         st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
     render_method_box()
-    render_footer()
+    render_footer(is_extended=is_extended)
 
 if __name__ == "__main__":
     main()
