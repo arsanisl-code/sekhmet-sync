@@ -721,21 +721,93 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
 
 
 # ---------------------------------------------------------------------------
-# Anomaly Tab
+# Anomaly & Critical Periods Tab
 # ---------------------------------------------------------------------------
 
+def calculate_season_window(daily_f):
+    """Dynamically compute the core burning season window (10th to 90th percentile of DOY distribution)."""
+    d = daily_f.copy()
+    if d.empty or d["harmonised_hotspots"].sum() == 0:
+        return None
+    d["doy"] = d["date"].dt.dayofyear
+    doy_totals = d.groupby("doy")["harmonised_hotspots"].sum()
+    cumsum = doy_totals.cumsum()
+    total = cumsum.iloc[-1]
+    if total == 0:
+        return None
+    p10_doy = int(cumsum[cumsum >= 0.10 * total].index[0])
+    p90_doy = int(cumsum[cumsum >= 0.90 * total].index[0])
+    d10 = pd.Timestamp("2021-01-01") + pd.Timedelta(days=p10_doy - 1)
+    d90 = pd.Timestamp("2021-01-01") + pd.Timedelta(days=p90_doy - 1)
+    duration = p90_doy - p10_doy + 1
+    return {
+        "p10_doy": p10_doy,
+        "p90_doy": p90_doy,
+        "start_str": d10.strftime("%b %d"),
+        "end_str": d90.strftime("%b %d"),
+        "duration": duration,
+    }
+
+
+def calculate_critical_streaks(daily_f, multiplier=3.0, min_streak_len=3):
+    """Dynamically identify sustained critical periods where daily burning exceeds multiplier * historical median."""
+    d = daily_f.copy().sort_values("date").reset_index(drop=True)
+    if d.empty or d["harmonised_hotspots"].sum() == 0:
+        return pd.DataFrame()
+    cond = (d["harmonised_hotspots"] > multiplier * d["median_hotspots"]) & (d["harmonised_hotspots"] >= 10)
+    d["streak_id"] = (~cond).cumsum()
+    streaks = d[cond].groupby("streak_id").agg(
+        start_date=("date", "min"),
+        end_date=("date", "max"),
+        duration_days=("date", "count"),
+        peak_daily_hotspots=("harmonised_hotspots", "max"),
+        total_hotspots=("harmonised_hotspots", "sum"),
+    ).reset_index(drop=True)
+    if streaks.empty:
+        return pd.DataFrame()
+    streaks = streaks[streaks["duration_days"] >= min_streak_len].sort_values("duration_days", ascending=False)
+    return streaks
+
+
 def render_anomaly(daily_f, region_name):
-    """Daily hotspots vs multi-year median and top anomaly table."""
+    """Daily hotspots vs multi-year median, season window, critical streaks, and anomaly table."""
     d = daily_f.copy()
 
-    # Render the daily line chart
+    # 1. Render the daily line chart
     render_daily_line(d, region_name)
 
-    # Top 10 anomaly table
+    st.markdown("---")
+    st.markdown("### 🚨 Critical Periods & Seasonality Analysis")
+    st.caption("Empirical season boundaries and sustained outbreak streaks calculated dynamically from the active search filter.")
+
+    # 2. Season Window Metrics
+    sw = calculate_season_window(d)
+    if sw:
+        sc1, sc2, sc3 = st.columns(3)
+        sc1.metric("Core Fire Season Window", f"{sw['start_str']} – {sw['end_str']}", help="10th to 90th percentile of cumulative burning")
+        sc2.metric("Core Season Duration", f"{sw['duration']} days", help="Length of the core 80% burning period")
+        sc3.metric("Window Concentration", "80% of Hotspots", help="Percentage of burning contained within this seasonal window")
+
+    # 3. Sustained Critical Outbreak Streaks
+    streaks = calculate_critical_streaks(d, multiplier=3.0, min_streak_len=3)
+    if not streaks.empty:
+        st.markdown("**Sustained Critical Outbreak Streaks (≥ 3 consecutive days at > 3× historical median):**")
+        disp_streaks = streaks.copy()
+        disp_streaks["start_date"] = disp_streaks["start_date"].dt.strftime("%Y-%m-%d")
+        disp_streaks["end_date"] = disp_streaks["end_date"].dt.strftime("%Y-%m-%d")
+        disp_streaks["peak_daily_hotspots"] = disp_streaks["peak_daily_hotspots"].apply(lambda v: f"{int(v):,}")
+        disp_streaks["total_hotspots"] = disp_streaks["total_hotspots"].apply(lambda v: f"{int(v):,}")
+        disp_streaks.columns = ["Start Date", "End Date", "Duration (Days)", "Peak Daily Hotspots", "Total Hotspots in Streak"]
+        st.dataframe(disp_streaks, use_container_width=True, hide_index=True)
+    else:
+        st.info("No sustained multi-day outbreak streaks (> 3× median for ≥ 3 consecutive days) detected in this selection.")
+
+    st.markdown("---")
+    # 4. Top 10 anomaly table
     top10 = d.nlargest(10, "anomaly_hotspots")[["date", "raw_modis_hotspots", "raw_viirs_hotspots", "harmonised_hotspots", "median_hotspots", "anomaly_hotspots"]].copy()
     top10["date"] = top10["date"].dt.strftime("%Y-%m-%d")
     top10.columns = ["Date", "MODIS (Raw)", "VIIRS (Raw)", "Harmonised", "Median", "Anomaly"]
-    st.markdown("**Top 10 Above-Median Anomaly Days (Critical Fire Periods):**")
+    st.markdown("**Top 10 Peak Anomaly Days:**")
     st.dataframe(top10, use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------

@@ -182,3 +182,23 @@ def test_spatial_footprint_rendering():
     assert set(d_map["sensor"].unique()).issubset({"MODIS", "VIIRS"})
     assert (d_map["latitude"].between(bounds["min_lat"], bounds["max_lat"])).all()
     assert (d_map["longitude"].between(bounds["min_lon"], bounds["max_lon"])).all()
+
+
+def test_critical_periods_and_season_window():
+    """Verify season window (p10 to p90) and sustained critical streak calculations."""
+    from app import calculate_season_window, calculate_critical_streaks, load_statewide_daily
+
+    daily = load_statewide_daily()
+    assert daily is not None
+
+    sw = calculate_season_window(daily)
+    assert sw is not None
+    assert sw["duration"] == 85
+    assert sw["start_str"] == "Jul 11"
+    assert sw["end_str"] == "Oct 03"
+
+    streaks = calculate_critical_streaks(daily, multiplier=3.0, min_streak_len=3)
+    assert not streaks.empty
+    top_streak = streaks.iloc[0]
+    assert top_streak["duration_days"] == 23
+    assert top_streak["peak_daily_hotspots"] == 5452
