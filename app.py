@@ -362,6 +362,22 @@ def render_stat_cards(daily_f):
 # Calendar Views (Daily Matrix 5x366, Monthly Heatmap 5x12, Daily Line)
 # ---------------------------------------------------------------------------
 
+def get_plotly_config(filename="chart"):
+    """Plotly toolbar config enabling high-resolution PNG export for the active view."""
+    clean_name = filename.replace(" ", "_").replace("—", "").replace("/", "_").replace("(", "").replace(")", "").strip("_")
+    return {
+        "displayModeBar": True,
+        "displaylogo": False,
+        "toImageButtonOptions": {
+            "format": "png",
+            "filename": f"sekhmet_sync_{clean_name}",
+            "height": 600,
+            "width": 1100,
+            "scale": 2,
+        },
+    }
+
+
 def render_daily_matrix(daily_f, region_name):
     """Render 5x366 Daily Burning Activity Calendar Matrix."""
     years = [2020, 2021, 2022, 2023, 2024]
@@ -441,7 +457,7 @@ def render_daily_matrix(daily_f, region_name):
         margin=dict(l=50, r=60, t=45, b=30),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"daily_calendar_{region_name}"))
     st.caption(
         "Rows = years 2020–2024. Columns = day-of-year 1–366. "
         "Papyrus cells = zero hotspots detected. Grey cells (DOY 366 in non-leap years) = no data."
@@ -509,7 +525,7 @@ def render_monthly_heatmap(daily_f, region_name):
         margin=dict(l=50, r=60, t=45, b=40),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"monthly_heatmap_{region_name}"))
     st.caption(
         "Rows = years 2020–2024. Columns = months Jan–Dec. "
         "Cell values display total monthly harmonised hotspots (k = thousands). "
@@ -586,7 +602,7 @@ def render_daily_line(daily_f, region_name):
         legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
         margin=dict(l=50, r=40, t=45, b=45),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
 
 
 def render_calendar(daily_f, region_name):
@@ -704,7 +720,7 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
         ),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"spatial_footprint_{region_name}"))
 
     if sampled:
         st.caption(
@@ -861,7 +877,7 @@ def render_why_harmonisation(daily_f):
         legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
         margin=dict(l=50, r=40, t=50, b=50),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config("annual_sensor_comparison"))
 
 # ---------------------------------------------------------------------------
 # Search CSV Downloads (Slices to User's Selected Region & Date Range)
@@ -902,6 +918,15 @@ def render_downloads(daily_f, det_f, region_name, date_range):
             mime="text/csv",
             help="Individual hotspot records for the selected search",
         )
+
+    # 3. Visualizations export guidance
+    st.markdown("#### 📷 Visualizations Export (Download Current View)")
+    st.caption(
+        "Every interactive chart (Daily Matrix, Monthly Heatmap, Spatial Footprint, and Anomaly Line) "
+        "features a built-in **camera icon ('Download plot as png')** in its top-right toolbar. "
+        "Hover over the top-right corner of any chart and click the camera icon to save a "
+        "high-resolution 2× PNG image matching your exact region and date filter."
+    )
 
 # ---------------------------------------------------------------------------
 # Method & Limitations
