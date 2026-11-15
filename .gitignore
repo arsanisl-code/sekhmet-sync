@@ -1,0 +1,70 @@
+# Secrets
+.env
+
+# Raw downloaded data (can be large; re-generate with fetch_firms.py)
+data/raw/
+
+# Regenerable intermediate files
+data/ca_2020_2024.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Large files (GitHub hard limit is 100 MB)
+*.parquet
+
+# Temp log and output files from pipeline runs
+gate1_log.txt
+cluster_out.txt
+cluster_err.txt
+harmonize_out.txt
+harmonize_err.txt
+disc_log.txt
+disc_out.txt
+disc_out2.txt
+disc_err.txt
+disc_err2.txt
+disc_full.txt
+disc_v2.txt
+exports_out.txt
+exports_out2.txt
+exports_err.txt
+exports_err2.txt
+scaling_out.txt
+scaling_err.txt
+test_output.txt
+
+# Temporary helper scripts
+gen_disc.py
+
+# Note: data/daily_series.csv and data/ca_2020_2024_harmonised.csv ARE committed
+# because they are small and allow the app to run without re-running the pipeline.
+
+# Internal review and scratch directories (not for deployment)
+review/
+requirements/
+
+# Audit and one-off scripts
+audit_p3d.py

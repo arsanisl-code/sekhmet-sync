@@ -1,0 +1,4 @@
+latitude,longitude,brightness_mid,brightness_lwir,scan,track,acq_date,acq_time,satellite,instrument,confidence_raw,frp,daynight,sensor_type,source_product
+36.0000,-118.0000,340.0,305.0,1.0,1.0,2021-07-10,1300,Terra,MODIS,95,50.0,D,modis,MODIS_SP
+36.0001,-118.0001,341.0,306.0,1.0,1.0,2021-07-11,1300,Terra,MODIS,95,52.0,D,modis,MODIS_SP
+36.0002,-118.0002,342.0,307.0,1.0,1.0,2021-07-12,1300,Terra,MODIS,95,48.0,D,modis,MODIS_SP
