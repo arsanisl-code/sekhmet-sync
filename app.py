@@ -95,7 +95,41 @@ REGIONS = {
 # Themes: Dark (Black) and Light (White)
 # ---------------------------------------------------------------------------
 
-THEMES = 
+THEMES = {
+    "Dark (Black)": {
+        "name": "dark",
+        "bg_app": "#0A0A0B",
+        "bg_sidebar": "#111113",
+        "bg_card": "#161618",
+        "bg_card_solid": "#161618",
+        "border_card": "#27272A",
+        "text_primary": "#F4F4F5",
+        "text_secondary": "#A1A1AA",
+        "text_muted": "#71717A",
+        "accent_flame": "#EF4444",
+        "accent_flame_light": "#F87171",
+        "accent_gold": "#F59E0B",
+        "accent_crimson": "#DC2626",
+        "modis_color": "#38BDF8",
+        "viirs_color": "#FB923C",
+        "median_color": "#10B981",
+        "plotly_paper": "rgba(0,0,0,0)",
+        "plotly_plot": "rgba(0,0,0,0)",
+        "plotly_grid": "rgba(255, 255, 255, 0.08)",
+        "plotly_text": "#F4F4F5",
+        "map_style": "carto-darkmatter",
+        "btn_bg": "#27272A",
+        "btn_hover": "#3F3F46",
+        "btn_text": "#FFFFFF",
+        "colorscale": [
+            [0.00, "#161618"],
+            [0.05, "#1F2937"],
+            [0.25, "#B45309"],
+            [0.55, "#EA580C"],
+            [0.80, "#DC2626"],
+            [1.00, "#FBBF24"],
+        ],
+    },
     "Light (White)": {
         "name": "light",
         "bg_app": "#FFFFFF",
@@ -138,10 +172,13 @@ def get_current_theme():
 def get_global_css(t):
     return f"""
 <style>
-/* Base Viewport */
-.stApp {{
+/* Base Viewport & Typography */
+html, body, [class*="css"], .stApp {{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     background-color: {t["bg_app"]} !important;
     color: {t["text_primary"]} !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }}
 
 /* Sidebar Container */
@@ -160,53 +197,38 @@ def get_global_css(t):
     max-width: 1350px !important;
 }}
 
-/* Completely Stable Stat Cards — No Jumps, No Movements */
+/* Clean Institutional Stat Cards */
 [data-testid="stMetric"] {{
     background-color: {t["bg_card"]} !important;
     border: 1px solid {t["border_card"]} !important;
     border-radius: 8px !important;
-    padding: 14px 18px !important;
-    box-shadow: none !important;
-    transform: none !important;
-    transition: none !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: border-color 0.15s ease !important;
 }}
 
-/* Hover: DO NOT highlight or flash the box. ONLY bold the text */
 [data-testid="stMetric"]:hover {{
-    background-color: {t["bg_card"]} !important;
-    border: 1px solid {t["border_card"]} !important;
-    box-shadow: none !important;
-    transform: none !important;
+    border-color: {t["text_muted"]} !important;
 }}
 
 [data-testid="stMetricLabel"] {{
     color: {t["text_secondary"]} !important;
-    font-size: 0.80rem !important;
+    font-size: 0.78rem !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
-    transition: font-weight 0.1s ease !important;
-}}
-
-[data-testid="stMetric"]:hover [data-testid="stMetricLabel"] {{
-    font-weight: 700 !important;
-    color: {t["text_primary"]} !important;
 }}
 
 [data-testid="stMetricValue"] {{
     color: {t["text_primary"]} !important;
-    font-size: 1.55rem !important;
-    font-weight: 700 !important;
+    font-size: 1.45rem !important;
+    font-weight: 600 !important;
     white-space: nowrap !important;
     letter-spacing: -0.01em !important;
-    transition: font-weight 0.1s ease !important;
+    line-height: 1.2 !important;
 }}
 
-[data-testid="stMetric"]:hover [data-testid="stMetricValue"] {{
-    font-weight: 800 !important;
-}}
-
-/* Stable Inputs — Eliminate any jump or jitter when clicking into numbers */
+/* Stable Inputs */
 [data-testid="stNumberInput"], [data-testid="stTextInput"], [data-testid="stDateInput"], [data-testid="stSelectbox"] {{
     transform: none !important;
     transition: none !important;
@@ -230,7 +252,7 @@ def get_global_css(t):
     color: {t["text_secondary"]} !important;
     border-radius: 6px 6px 0 0 !important;
     font-weight: 500 !important;
-    font-size: 0.90rem !important;
+    font-size: 0.88rem !important;
     padding: 8px 16px !important;
     border: none !important;
     background: transparent !important;
@@ -240,7 +262,6 @@ def get_global_css(t):
 
 .stTabs [data-baseweb="tab"]:hover {{
     color: {t["text_primary"]} !important;
-    font-weight: 700 !important;
     background: transparent !important;
     transform: none !important;
 }}
@@ -248,7 +269,7 @@ def get_global_css(t):
 .stTabs [data-baseweb="tab"][aria-selected="true"] {{
     color: {t["accent_flame"]} !important;
     border-bottom: 2px solid {t["accent_flame"]} !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
 }}
 
 /* Radio Buttons */
@@ -258,16 +279,16 @@ def get_global_css(t):
     border-radius: 6px !important;
     padding: 6px 12px !important;
     cursor: pointer !important;
+    font-size: 0.85rem !important;
     transform: none !important;
     transition: none !important;
 }}
 
 [data-testid="stRadio"] label:hover {{
-    border: 1px solid {t["border_card"]} !important;
-    font-weight: 700 !important;
+    border-color: {t["text_muted"]} !important;
 }}
 
-/* Buttons — Solid, Stable, No Jumps */
+/* Buttons — Solid, Stable */
 .stButton > button, .stDownloadButton > button {{
     background-color: {t["btn_bg"]} !important;
     color: {t["btn_text"]} !important;
@@ -275,16 +296,16 @@ def get_global_css(t):
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 500 !important;
+    font-size: 0.85rem !important;
     box-shadow: none !important;
     transform: none !important;
-    transition: none !important;
+    transition: background-color 0.15s ease !important;
 }}
 
 .stButton > button:hover, .stDownloadButton > button:hover {{
     background-color: {t["btn_hover"]} !important;
     color: {t["btn_text"]} !important;
     border: 1px solid {t["border_card"]} !important;
-    font-weight: 700 !important;
     box-shadow: none !important;
     transform: none !important;
 }}
@@ -297,8 +318,7 @@ def get_global_css(t):
 </style>
 """
 
-GLOBAL_CSS = get_global_css(THEME)
-
+GLOBAL_CSS = get_global_css(THEMES["Dark (Black)"])
 
 # ---------------------------------------------------------------------------
 # Cached Data Loaders
@@ -481,7 +501,16 @@ def render_header(theme=None):
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
+    st.sidebar.markdown("## Theme")
+    theme_choice = st.sidebar.selectbox(
+        "Palette",
+        options=["Dark (Black)", "Light (White)"],
+        index=0,
+        help="Switch between Dark (Black) and Light (White) theme.",
+    )
+    st.session_state["theme_choice"] = theme_choice
 
+    st.sidebar.markdown("---")
     st.sidebar.markdown("## Region & Timeframe")
 
     region_choice = st.sidebar.selectbox(
@@ -549,10 +578,6 @@ def render_sidebar():
     )
 
     return region_choice, custom_bounds, (start_date, end_date)
-
-main():
-def get_current_theme():
-    return THEME
 
 # ---------------------------------------------------------------------------
 # Stat Cards
@@ -830,9 +855,11 @@ def render_daily_line(daily_f, region_name, theme=None):
         paper_bgcolor=t["plotly_paper"],
         plot_bgcolor=t["plotly_plot"],
         legend=dict(
-            x=0.01,
+            x=0.99,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
+            xanchor="right",
+            yanchor="top",
+            font=dict(color=t["plotly_text"], size=10.5),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -1190,9 +1217,11 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
         plot_bgcolor=t["plotly_plot"],
         height=370,
         legend=dict(
-            x=0.01,
+            x=0.99,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
+            xanchor="right",
+            yanchor="top",
+            font=dict(color=t["plotly_text"], size=10.5),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -1290,9 +1319,11 @@ def render_why_harmonisation(daily_f, theme=None):
         paper_bgcolor=t["plotly_paper"],
         plot_bgcolor=t["plotly_plot"],
         legend=dict(
-            x=0.01,
+            x=0.99,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
+            xanchor="right",
+            yanchor="top",
+            font=dict(color=t["plotly_text"], size=10.5),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -1450,13 +1481,18 @@ def render_footer(theme=None):
 # ---------------------------------------------------------------------------
 
 def main():
- theme=THEME 
-  
+    # Pre-read theme from session state
+    theme_name = st.session_state.get("theme_choice", "Dark (Black)")
+    theme = THEMES.get(theme_name, THEMES["Dark (Black)"])
+
     st.markdown(get_global_css(theme), unsafe_allow_html=True)
     render_header(theme)
 
     region_choice, custom_bounds, date_range = render_sidebar()
 
+    # Re-evaluate active theme in case updated in sidebar selectbox during this pass
+    active_theme_name = st.session_state.get("theme_choice", theme_name)
+    theme = THEMES.get(active_theme_name, theme)
 
     daily_statewide = load_statewide_daily()
     detections = load_detections()
