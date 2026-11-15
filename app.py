@@ -17,6 +17,11 @@ from pathlib import Path
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
+# Ensure the repository root is in sys.path regardless of execution working directory
+APP_DIR = Path(__file__).resolve().parent
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -44,9 +49,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-DAILY_CSV = Path("data/daily_series_harmonised.csv")
-DETECTIONS_CSV = Path("data/harmonised_detections.csv")
-DISCONTINUITY_PNG = Path("exports/discontinuity.png")
+DAILY_CSV = APP_DIR / "data" / "daily_series_harmonised.csv"
+DETECTIONS_CSV = APP_DIR / "data" / "harmonised_detections.csv"
+DISCONTINUITY_PNG = APP_DIR / "exports" / "discontinuity.png"
 
 # ---------------------------------------------------------------------------
 # Sub-region bounding boxes (Single source of truth)

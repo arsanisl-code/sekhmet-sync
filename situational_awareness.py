@@ -67,7 +67,8 @@ def get_firms_key() -> str | None:
     if not key or key.strip() in ("", "PASTE_YOUR_KEY_HERE"):
         try:
             from pathlib import Path
-            local_secrets = Path(".streamlit/secrets.toml")
+            app_dir = Path(__file__).resolve().parent
+            local_secrets = app_dir / ".streamlit" / "secrets.toml"
             user_secrets = Path.home() / ".streamlit" / "secrets.toml"
             if local_secrets.exists() or user_secrets.exists():
                 import streamlit as st
