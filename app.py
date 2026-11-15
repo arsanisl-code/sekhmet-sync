@@ -9,10 +9,9 @@ Reads precomputed files only:
   - data/harmonised_detections.csv
   - exports/discontinuity.png (optional historical demo)
 
-No NASA logos. Crisp modern white theme with interactive 3D Globe & 2D world view.
+No NASA logos. Minimalist White Theme with 3D Globe & 2D Map.
 """
 
-import sys
 from pathlib import Path
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
@@ -92,60 +91,30 @@ REGIONS = {
 }
 
 # ---------------------------------------------------------------------------
-# Curated California Cities, Counties & Incident Landmarks Finder
-# ---------------------------------------------------------------------------
-
-CALIFORNIA_LOCATIONS = {
-    "Statewide View": {"lat": 37.25, "lon": -119.5, "county": "Statewide", "zoom": 5.5},
-    "Los Angeles": {"lat": 34.0522, "lon": -118.2437, "county": "Los Angeles County", "zoom": 9.5},
-    "San Diego": {"lat": 32.7157, "lon": -117.1611, "county": "San Diego County", "zoom": 9.5},
-    "San Francisco / Bay Area": {"lat": 37.7749, "lon": -122.4194, "county": "San Francisco County", "zoom": 9.5},
-    "San Jose / Silicon Valley": {"lat": 37.3382, "lon": -121.8863, "county": "Santa Clara County", "zoom": 9.5},
-    "Sacramento (State Capital)": {"lat": 38.5816, "lon": -121.4944, "county": "Sacramento County", "zoom": 9.5},
-    "Fresno / San Joaquin Valley": {"lat": 36.7468, "lon": -119.7726, "county": "Fresno County", "zoom": 9.5},
-    "Bakersfield": {"lat": 35.3733, "lon": -119.0187, "county": "Kern County", "zoom": 9.5},
-    "Redding / Shasta": {"lat": 40.5865, "lon": -122.3917, "county": "Shasta County", "zoom": 9.0},
-    "Paradise / Chico (Camp Fire Zone)": {"lat": 39.7596, "lon": -121.6219, "county": "Butte County", "zoom": 10.0},
-    "Creek Fire Zone / Shaver Lake": {"lat": 37.1041, "lon": -119.3174, "county": "Fresno County", "zoom": 10.0},
-    "Greenville / Quincy (Dixie Fire Zone)": {"lat": 40.1402, "lon": -120.9136, "county": "Plumas County", "zoom": 10.0},
-    "South Lake Tahoe (Caldor Fire Zone)": {"lat": 38.9399, "lon": -119.9772, "county": "El Dorado County", "zoom": 10.0},
-    "Santa Rosa / Napa (Wine Country)": {"lat": 38.4404, "lon": -122.7141, "county": "Sonoma / Napa", "zoom": 9.5},
-    "Yosemite Valley": {"lat": 37.7456, "lon": -119.5936, "county": "Mariposa County", "zoom": 10.0},
-    "Santa Barbara / Montecito": {"lat": 34.4208, "lon": -119.6982, "county": "Santa Barbara County", "zoom": 9.5},
-    "Palm Springs / Coachella": {"lat": 33.8303, "lon": -116.5453, "county": "Riverside County", "zoom": 9.5},
-    "Eureka / Humboldt Coast": {"lat": 40.8021, "lon": -124.1637, "county": "Humboldt County", "zoom": 9.0},
-    "Klamath National Forest": {"lat": 41.5000, "lon": -123.1000, "county": "Siskiyou County", "zoom": 9.0},
-    "Death Valley / Eastern Sierra": {"lat": 36.5323, "lon": -116.9325, "county": "Inyo County", "zoom": 8.5},
-}
-
-# ---------------------------------------------------------------------------
 # Clean White Theme Design System
 # ---------------------------------------------------------------------------
 
 THEME = {
-    "name": "light",
     "bg_app": "#FFFFFF",
-    "bg_sidebar": "#F8F9FA",
-    "bg_card": "#F8F9FA",
+    "bg_sidebar": "#F9FAFB",
+    "bg_card": "#F9FAFB",
     "bg_card_solid": "#FFFFFF",
-    "border_card": "#E4E4E7",
-    "text_primary": "#18181B",
-    "text_secondary": "#52525B",
-    "text_muted": "#71717A",
+    "border_card": "#E5E7EB",
+    "text_primary": "#111827",
+    "text_secondary": "#4B5563",
+    "text_muted": "#6B7280",
     "accent_flame": "#DC2626",
-    "accent_flame_light": "#EF4444",
     "accent_gold": "#D97706",
     "accent_crimson": "#B91C1C",
-    "modis_color": "#0284C7",
+    "modis_color": "#2563EB",
     "viirs_color": "#EA580C",
     "median_color": "#059669",
     "plotly_paper": "rgba(0,0,0,0)",
     "plotly_plot": "rgba(0,0,0,0)",
-    "plotly_grid": "rgba(0, 0, 0, 0.07)",
-    "plotly_text": "#18181B",
-    "map_style": "carto-positron",
-    "btn_bg": "#18181B",
-    "btn_hover": "#27272A",
+    "plotly_grid": "rgba(0, 0, 0, 0.06)",
+    "plotly_text": "#111827",
+    "btn_bg": "#111827",
+    "btn_hover": "#1F2937",
     "btn_text": "#FFFFFF",
     "colorscale": [
         [0.00, "#FFFFFF"],
@@ -159,96 +128,91 @@ THEME = {
 def get_current_theme():
     return THEME
 
-def get_global_css(t=THEME):
-    return f"""
+GLOBAL_CSS = """
 <style>
-/* Base Viewport */
-.stApp {{
-    background-color: {t["bg_app"]} !important;
-    color: {t["text_primary"]} !important;
-}}
+/* Main Viewport */
+.stApp {
+    background-color: #FFFFFF !important;
+    color: #111827 !important;
+}
 
-/* Sidebar Container */
-[data-testid="stSidebar"] {{
-    background-color: {t["bg_sidebar"]} !important;
-    border-right: 1px solid {t["border_card"]} !important;
-}}
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #F9FAFB !important;
+    border-right: 1px solid #E5E7EB !important;
+}
 
-[data-testid="stSidebar"] * {{
-    color: {t["text_primary"]} !important;
-}}
-
-.block-container {{
+.block-container {
     padding-top: 1.5rem !important;
     padding-bottom: 2.5rem !important;
-    max-width: 1350px !important;
-}}
+    max-width: 1300px !important;
+}
 
-/* Grounded Stat Cards — No Jumps, No Highlight, Only Letters Bold on Hover */
-[data-testid="stMetric"] {{
-    background-color: {t["bg_card"]} !important;
-    border: 1px solid {t["border_card"]} !important;
+/* Stat Cards: Solid, Grounded, No Jumpy AI Shifts */
+[data-testid="stMetric"] {
+    background-color: #F9FAFB !important;
+    border: 1px solid #E5E7EB !important;
     border-radius: 8px !important;
     padding: 14px 18px !important;
     box-shadow: none !important;
     transform: none !important;
     transition: none !important;
-}}
+}
 
-[data-testid="stMetric"]:hover {{
-    background-color: {t["bg_card"]} !important;
-    border: 1px solid {t["border_card"]} !important;
+[data-testid="stMetric"]:hover {
+    background-color: #F9FAFB !important;
+    border: 1px solid #E5E7EB !important;
     box-shadow: none !important;
     transform: none !important;
-}}
+}
 
-[data-testid="stMetricLabel"] {{
-    color: {t["text_secondary"]} !important;
+[data-testid="stMetricLabel"] {
+    color: #4B5563 !important;
     font-size: 0.80rem !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
-}}
+}
 
-[data-testid="stMetric"]:hover [data-testid="stMetricLabel"] {{
+/* On hover: only make text letters bold, no box highlight or movement */
+[data-testid="stMetric"]:hover [data-testid="stMetricLabel"] {
     font-weight: 700 !important;
-    color: {t["text_primary"]} !important;
-}}
+    color: #111827 !important;
+}
 
-[data-testid="stMetricValue"] {{
-    color: {t["text_primary"]} !important;
+[data-testid="stMetricValue"] {
+    color: #111827 !important;
     font-size: 1.55rem !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
-    letter-spacing: -0.01em !important;
-}}
+}
 
-[data-testid="stMetric"]:hover [data-testid="stMetricValue"] {{
+[data-testid="stMetric"]:hover [data-testid="stMetricValue"] {
     font-weight: 800 !important;
-}}
+}
 
-/* Stable Inputs — Eliminate Jitters When Clicking Numbers */
-[data-testid="stNumberInput"], [data-testid="stTextInput"], [data-testid="stDateInput"], [data-testid="stSelectbox"] {{
+/* Stable Number Inputs: Prevent Jitter When Clicking */
+[data-testid="stNumberInput"], [data-testid="stTextInput"], [data-testid="stDateInput"], [data-testid="stSelectbox"] {
     transform: none !important;
     transition: none !important;
-}}
+}
 
-[data-testid="stNumberInput"] input, [data-testid="stTextInput"] input {{
+[data-testid="stNumberInput"] input, [data-testid="stTextInput"] input {
     box-shadow: none !important;
     transform: none !important;
     transition: none !important;
-}}
+}
 
 /* Tabs */
-.stTabs [data-baseweb="tab-list"] {{
+.stTabs [data-baseweb="tab-list"] {
     gap: 8px !important;
     background: transparent !important;
-    border-bottom: 1px solid {t["border_card"]} !important;
+    border-bottom: 1px solid #E5E7EB !important;
     padding-bottom: 2px !important;
-}}
+}
 
-.stTabs [data-baseweb="tab"] {{
-    color: {t["text_secondary"]} !important;
+.stTabs [data-baseweb="tab"] {
+    color: #4B5563 !important;
     border-radius: 6px 6px 0 0 !important;
     font-weight: 500 !important;
     font-size: 0.90rem !important;
@@ -257,68 +221,60 @@ def get_global_css(t=THEME):
     background: transparent !important;
     transform: none !important;
     transition: none !important;
-}}
+}
 
-.stTabs [data-baseweb="tab"]:hover {{
-    color: {t["text_primary"]} !important;
+.stTabs [data-baseweb="tab"]:hover {
+    color: #111827 !important;
     font-weight: 700 !important;
-    background: transparent !important;
-    transform: none !important;
-}}
+}
 
-.stTabs [data-baseweb="tab"][aria-selected="true"] {{
-    color: {t["accent_flame"]} !important;
-    border-bottom: 2px solid {t["accent_flame"]} !important;
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    color: #DC2626 !important;
+    border-bottom: 2px solid #DC2626 !important;
     font-weight: 700 !important;
-}}
+}
 
 /* Radio Buttons */
-[data-testid="stRadio"] label {{
-    background-color: {t["bg_card"]} !important;
-    border: 1px solid {t["border_card"]} !important;
+[data-testid="stRadio"] label {
+    background-color: #F9FAFB !important;
+    border: 1px solid #E5E7EB !important;
     border-radius: 6px !important;
     padding: 6px 12px !important;
     cursor: pointer !important;
     transform: none !important;
     transition: none !important;
-}}
+}
 
-[data-testid="stRadio"] label:hover {{
-    border: 1px solid {t["border_card"]} !important;
+[data-testid="stRadio"] label:hover {
     font-weight: 700 !important;
-}}
+}
 
-/* Buttons — Solid & Grounded */
-.stButton > button, .stDownloadButton > button {{
-    background-color: {t["btn_bg"]} !important;
-    color: {t["btn_text"]} !important;
-    border: 1px solid {t["border_card"]} !important;
+/* Buttons */
+.stButton > button, .stDownloadButton > button {
+    background-color: #111827 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 500 !important;
     box-shadow: none !important;
     transform: none !important;
     transition: none !important;
-}}
+}
 
-.stButton > button:hover, .stDownloadButton > button:hover {{
-    background-color: {t["btn_hover"]} !important;
-    color: {t["btn_text"]} !important;
-    border: 1px solid {t["border_card"]} !important;
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background-color: #1F2937 !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
-    box-shadow: none !important;
-    transform: none !important;
-}}
+}
 
 /* Tables / DataFrames */
-[data-testid="stDataFrame"] {{
+[data-testid="stDataFrame"] {
     border-radius: 6px !important;
-    border: 1px solid {t["border_card"]} !important;
-}}
+    border: 1px solid #E5E7EB !important;
+}
 </style>
 """
-
-GLOBAL_CSS = get_global_css(THEME)
 
 # ---------------------------------------------------------------------------
 # Cached Data Loaders
@@ -385,9 +341,9 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
     # Check for partial overlap
     partially_clipped = False
     clipped_min_lat = max(min_lat, c_min_lat)
-    clipped_max_lat = min(max_lat, c_min_lat) if max_lat < c_min_lat else min(max_lat, c_max_lat)
+    clipped_max_lat = min(max_lat, c_max_lat)
     clipped_min_lon = max(min_lon, c_min_lon)
-    clipped_max_lon = min(max_lon, c_min_lon)
+    clipped_max_lon = min(max_lon, c_max_lon)
 
     if (clipped_min_lat != min_lat or clipped_max_lat != max_lat or
         clipped_min_lon != min_lon or clipped_max_lon != max_lon):
@@ -417,12 +373,12 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
     if not det_slice.empty:
         m_counts = det_slice[det_slice["sensor"] == "MODIS"].groupby("date").size().rename("raw_modis_hotspots")
         v_harm_counts = det_slice[det_slice["sensor"] == "VIIRS"].groupby("date").size().rename("viirs_harmonised")
-        
+
         d_agg = daily_spine.merge(m_counts, on="date", how="left").merge(v_harm_counts, on="date", how="left").fillna(0)
         d_agg["raw_modis_hotspots"] = d_agg["raw_modis_hotspots"].astype(int)
         d_agg["viirs_harmonised"] = d_agg["viirs_harmonised"].astype(int)
         d_agg["harmonised_hotspots"] = d_agg["raw_modis_hotspots"] + d_agg["viirs_harmonised"]
-        
+
         # Estimate raw VIIRS proportionally based on Statewide 38.3% threshold ratio if raw un-thresholded VIIRS not present
         d_agg["raw_viirs_hotspots"] = (d_agg["viirs_harmonised"] / 0.383).round().astype(int)
     else:
@@ -445,12 +401,11 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
 # Header
 # ---------------------------------------------------------------------------
 
-def render_header(theme=None):
-    t = theme or get_current_theme()
+def render_header():
     st.markdown(
-        f"""
-        <div style="background-color: {t['bg_card']};
-                    border: 1px solid {t['border_card']};
+        """
+        <div style="background-color: #F9FAFB;
+                    border: 1px solid #E5E7EB;
                     border-radius: 8px;
                     padding: 16px 20px;
                     margin-bottom: 12px;
@@ -461,23 +416,23 @@ def render_header(theme=None):
                     gap: 12px;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 1.45rem; font-weight: 700; color: {t['text_primary']};">
+              <span style="font-size: 1.45rem; font-weight: 700; color: #111827;">
                 🔥 Sekhmet Sync
               </span>
-              <span style="border: 1px solid {t['border_card']}; color: {t['text_secondary']};
+              <span style="border: 1px solid #E5E7EB; color: #4B5563;
                            font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;">
                 NASA Space Apps 2026
               </span>
             </div>
-            <div style="color: {t['text_secondary']}; font-size: 0.88rem; margin-top: 4px;">
+            <div style="color: #4B5563; font-size: 0.88rem; margin-top: 4px;">
               Harmonized Satellite Hotspot Activity Calendar • California (2020–2024)
             </div>
           </div>
           <div>
             <a href="https://sekhmet-sync.streamlit.app/" target="_blank"
-               style="color: {t['text_primary']}; text-decoration: none; font-size: 0.82rem; font-weight: 500;
-                      border: 1px solid {t['border_card']}; padding: 6px 12px; border-radius: 6px;
-                      background-color: {t['bg_app']};">
+               style="color: #111827; text-decoration: none; font-size: 0.82rem; font-weight: 500;
+                      border: 1px solid #E5E7EB; padding: 6px 12px; border-radius: 6px;
+                      background-color: #FFFFFF;">
               sekhmet-sync.streamlit.app ↗
             </a>
           </div>
@@ -486,18 +441,18 @@ def render_header(theme=None):
         unsafe_allow_html=True,
     )
     st.markdown(
-        f"""
-        <div style="background-color: {t['bg_card']}; border-left: 3px solid {t['accent_gold']};
+        """
+        <div style="background-color: #F9FAFB; border-left: 3px solid #D97706;
                     border-radius: 0 4px 4px 0; padding: 8px 12px; margin-bottom: 14px;
-                    color: {t['text_secondary']}; font-size: 0.82rem;">
-          ⚠️ <strong>Harmonization Notice:</strong> Applies an experimental <strong>6.5 MW FRP sensitivity threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See Method & Limitations tab.
+                    color: #4B5563; font-size: 0.82rem;">
+          ⚠️ <strong>Harmonization Notice:</strong> Applies an experimental <strong>6.5 MW FRP threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See Method & Limitations tab.
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 # ---------------------------------------------------------------------------
-# Sidebar Controls (Coordinate System Preserved)
+# Sidebar Controls
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
@@ -507,7 +462,7 @@ def render_sidebar():
         "Choose Region",
         options=list(REGIONS.keys()),
         index=0,
-        help="Select a defined California fire regime or specify a custom bounding box.",
+        help="Select a defined California fire regime or specify custom coordinates.",
     )
 
     custom_bounds = None
@@ -573,11 +528,11 @@ def render_sidebar():
 # Stat Cards
 # ---------------------------------------------------------------------------
 
-def render_stat_cards(daily_f, theme=None):
+def render_stat_cards(daily_f):
     """Render 4 core KPI cards."""
     total_raw = int(daily_f["raw_modis_hotspots"].sum() + daily_f["raw_viirs_hotspots"].sum())
     total_harm = int(daily_f["harmonised_hotspots"].sum())
-    
+
     if total_raw > 0:
         pct_filtered = (total_raw - total_harm) / total_raw * 100
         pct_filtered_str = f"{pct_filtered:.1f}%"
@@ -603,7 +558,6 @@ def render_stat_cards(daily_f, theme=None):
 # ---------------------------------------------------------------------------
 
 def get_plotly_config(filename="chart"):
-    """Plotly toolbar config enabling high-resolution PNG export for the active view."""
     clean_name = filename.replace(" ", "_").replace("—", "").replace("/", "_").replace("(", "").replace(")", "").strip("_")
     return {
         "displayModeBar": True,
@@ -617,16 +571,13 @@ def get_plotly_config(filename="chart"):
         },
     }
 
-
-def render_daily_matrix(daily_f, region_name, theme=None):
+def render_daily_matrix(daily_f, region_name):
     """Render 5x366 Daily Burning Activity Calendar Matrix."""
-    t = theme or get_current_theme()
     years = [2020, 2021, 2022, 2023, 2024]
     d = daily_f.copy()
     d["year"] = d["date"].dt.year
     d["doy"] = d["date"].dt.dayofyear
 
-    # Build 5x366 matrix
     matrix = np.full((5, 366), np.nan)
     for i, yr in enumerate(years):
         sub = d[d["year"] == yr]
@@ -639,11 +590,11 @@ def render_daily_matrix(daily_f, region_name, theme=None):
         z=matrix,
         x=list(range(1, 367)),
         y=[str(yr) for yr in years],
-        colorscale=t["colorscale"],
+        colorscale=THEME["colorscale"],
         colorbar=dict(
-            title=dict(text="Harmonised Hotspots", font=dict(color=t["plotly_text"], size=11)),
-            tickfont=dict(color=t["plotly_text"], size=10),
-            outlinecolor=t["border_card"],
+            title=dict(text="Harmonised Hotspots", font=dict(color=THEME["plotly_text"], size=11)),
+            tickfont=dict(color=THEME["plotly_text"], size=10),
+            outlinecolor=THEME["border_card"],
             outlinewidth=1,
         ),
         xgap=0.5,
@@ -652,13 +603,11 @@ def render_daily_matrix(daily_f, region_name, theme=None):
         hovertemplate="Year: %{y}<br>DOY: %{x}<br>Harmonised Hotspots: %{z:.0f}<extra></extra>",
     ))
 
-    # Month demarcation lines
     month_starts = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
     month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     for ms in month_starts:
-        fig.add_vline(x=ms - 0.5, line_width=0.5, line_color=t["border_card"], opacity=0.8)
+        fig.add_vline(x=ms - 0.5, line_width=0.5, line_color=THEME["border_card"], opacity=0.8)
 
-    # Dynamic peak callout
     if not d.empty and d["harmonised_hotspots"].sum() > 0:
         pk_row = d.loc[d["harmonised_hotspots"].idxmax()]
         pk_doy = int(pk_row["doy"])
@@ -671,28 +620,28 @@ def render_daily_matrix(daily_f, region_name, theme=None):
             text=f"★ Peak: {pk_count:,} hotspots",
             showarrow=True,
             arrowhead=2,
-            arrowcolor=t["accent_flame"],
-            font=dict(color=t["accent_flame"], size=10),
-            bgcolor=t["bg_card_solid"],
-            bordercolor=t["border_card"],
+            arrowcolor=THEME["accent_flame"],
+            font=dict(color=THEME["accent_flame"], size=10),
+            bgcolor=THEME["bg_card_solid"],
+            bordercolor=THEME["border_card"],
             borderwidth=1,
         )
 
     fig.update_layout(
         title=dict(
             text=f"Burning Activity Calendar (Daily 5×366) — {region_name}",
-            font=dict(color=t["plotly_text"], size=13),
+            font=dict(color=THEME["plotly_text"], size=13),
         ),
         xaxis=dict(
             tickmode="array",
             tickvals=[ms + 10 for ms in month_starts],
             ticktext=month_labels,
-            tickfont=dict(color=t["plotly_text"], size=9),
+            tickfont=dict(color=THEME["plotly_text"], size=9),
             showgrid=False,
         ),
-        yaxis=dict(tickfont=dict(color=t["plotly_text"]), autorange="reversed"),
-        paper_bgcolor=t["plotly_paper"],
-        plot_bgcolor=t["plotly_plot"],
+        yaxis=dict(tickfont=dict(color=THEME["plotly_text"]), autorange="reversed"),
+        paper_bgcolor=THEME["plotly_paper"],
+        plot_bgcolor=THEME["plotly_plot"],
         height=290,
         margin=dict(l=50, r=60, t=45, b=30),
     )
@@ -703,10 +652,8 @@ def render_daily_matrix(daily_f, region_name, theme=None):
         "Base cells = zero hotspots detected. Grey cells (DOY 366 in non-leap years) = no data."
     )
 
-
-def render_monthly_heatmap(daily_f, region_name, theme=None):
-    """Render 5x12 Monthly Burning Activity Heatmap showing macro trends and seasonal patterns."""
-    t = theme or get_current_theme()
+def render_monthly_heatmap(daily_f, region_name):
+    """Render 5x12 Monthly Burning Activity Heatmap."""
     years = [2020, 2021, 2022, 2023, 2024]
     months = list(range(1, 13))
     month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -739,12 +686,12 @@ def render_monthly_heatmap(daily_f, region_name, theme=None):
         y=[str(yr) for yr in years],
         text=text_matrix,
         texttemplate="%{text}",
-        textfont=dict(size=11, color=t["plotly_text"]),
-        colorscale=t["colorscale"],
+        textfont=dict(size=11, color=THEME["plotly_text"]),
+        colorscale=THEME["colorscale"],
         colorbar=dict(
-            title=dict(text="Hotspots / Mo", font=dict(color=t["plotly_text"], size=11)),
-            tickfont=dict(color=t["plotly_text"], size=10),
-            outlinecolor=t["border_card"],
+            title=dict(text="Hotspots / Mo", font=dict(color=THEME["plotly_text"], size=11)),
+            tickfont=dict(color=THEME["plotly_text"], size=10),
+            outlinecolor=THEME["border_card"],
             outlinewidth=1,
         ),
         xgap=2,
@@ -756,29 +703,22 @@ def render_monthly_heatmap(daily_f, region_name, theme=None):
     fig.update_layout(
         title=dict(
             text=f"Monthly Burning Activity Calendar (5×12) — {region_name}",
-            font=dict(color=t["plotly_text"], size=13),
+            font=dict(color=THEME["plotly_text"], size=13),
         ),
-        xaxis=dict(title="Month", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
-        yaxis=dict(title="Year", tickfont=dict(color=t["plotly_text"]), autorange="reversed"),
-        paper_bgcolor=t["plotly_paper"],
-        plot_bgcolor=t["plotly_plot"],
+        xaxis=dict(title="Month", tickfont=dict(color=THEME["plotly_text"]), gridcolor=THEME["plotly_grid"]),
+        yaxis=dict(title="Year", tickfont=dict(color=THEME["plotly_text"]), autorange="reversed"),
+        paper_bgcolor=THEME["plotly_paper"],
+        plot_bgcolor=THEME["plotly_plot"],
         height=310,
         margin=dict(l=50, r=60, t=45, b=40),
     )
 
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"monthly_heatmap_{region_name}"))
-    st.caption(
-        "Rows = years 2020–2024. Columns = months Jan–Dec. "
-        "Cell values display total monthly harmonised hotspots (k = thousands). "
-        "Provides an overview of seasonal wildfire concentration (Aug–Oct) and multi-year climate trends."
-    )
+    st.caption("Rows = years 2020–2024. Columns = months Jan–Dec. Cell values display total monthly harmonised hotspots.")
 
-
-def render_daily_line(daily_f, region_name, theme=None):
+def render_daily_line(daily_f, region_name):
     """Daily hotspots vs multi-year median line chart."""
-    t = theme or get_current_theme()
     d = daily_f.copy()
-
     fig = go.Figure()
 
     # Above median fill
@@ -789,7 +729,7 @@ def render_daily_line(daily_f, region_name, theme=None):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(220, 38, 38, 0.18)",
+        fillcolor="rgba(220, 38, 38, 0.15)",
         line=dict(color="rgba(255,255,255,0)"),
         name="Above median",
     ))
@@ -802,7 +742,7 @@ def render_daily_line(daily_f, region_name, theme=None):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(2, 132, 199, 0.12)",
+        fillcolor="rgba(37, 99, 235, 0.10)",
         line=dict(color="rgba(255,255,255,0)"),
         name="Below median",
     ))
@@ -812,7 +752,7 @@ def render_daily_line(daily_f, region_name, theme=None):
         x=d["date"],
         y=d["median_hotspots"],
         name="5-Yr Median Baseline",
-        line=dict(color=t["median_color"], width=2.0, dash="dash"),
+        line=dict(color=THEME["median_color"], width=2.0, dash="dash"),
     ))
 
     # Observed daily hotspots
@@ -820,7 +760,7 @@ def render_daily_line(daily_f, region_name, theme=None):
         x=d["date"],
         y=d["harmonised_hotspots"],
         name="Harmonised Hotspots",
-        line=dict(color=t["accent_flame"], width=1.6),
+        line=dict(color=THEME["accent_flame"], width=1.6),
     ))
 
     # Top 5 anomaly days
@@ -829,7 +769,7 @@ def render_daily_line(daily_f, region_name, theme=None):
         x=top5["date"],
         y=top5["harmonised_hotspots"],
         mode="markers",
-        marker=dict(color=t["accent_crimson"], size=9, symbol="star"),
+        marker=dict(color=THEME["accent_crimson"], size=9, symbol="star"),
         name="Top 5 Anomaly Peaks",
         hovertemplate="%{x}<br>Hotspots: %{y:,}<extra></extra>",
     ))
@@ -837,29 +777,27 @@ def render_daily_line(daily_f, region_name, theme=None):
     fig.update_layout(
         title=dict(
             text=f"Daily Burning Activity vs. Reference Median — {region_name}",
-            font=dict(color=t["plotly_text"], size=13),
+            font=dict(color=THEME["plotly_text"], size=13),
         ),
-        xaxis=dict(title="Date", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
-        yaxis=dict(title="Daily Hotspots", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        xaxis=dict(title="Date", tickfont=dict(color=THEME["plotly_text"]), gridcolor=THEME["plotly_grid"]),
+        yaxis=dict(title="Daily Hotspots", tickfont=dict(color=THEME["plotly_text"]), gridcolor=THEME["plotly_grid"]),
         height=360,
-        paper_bgcolor=t["plotly_paper"],
-        plot_bgcolor=t["plotly_plot"],
+        paper_bgcolor=THEME["plotly_paper"],
+        plot_bgcolor=THEME["plotly_plot"],
         legend=dict(
             x=0.01,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
-            bgcolor=t["bg_card_solid"],
-            bordercolor=t["border_card"],
+            font=dict(color=THEME["plotly_text"]),
+            bgcolor=THEME["bg_card_solid"],
+            bordercolor=THEME["border_card"],
             borderwidth=1,
         ),
         margin=dict(l=50, r=40, t=45, b=45),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
 
-
-def render_calendar(daily_f, region_name, theme=None):
-    """Burning Activity Calendar container with multi-scale views."""
-    t = theme or get_current_theme()
+def render_calendar(daily_f, region_name):
+    """Burning Activity Calendar container with clean view switcher."""
     cal_mode = st.radio(
         "Calendar View",
         [
@@ -868,31 +806,25 @@ def render_calendar(daily_f, region_name, theme=None):
             "📈 Daily Line (Hotspots vs. Median)",
         ],
         horizontal=True,
-        help="Select view: 5×366 daily matrix for intra-season ignition spikes, 5×12 monthly rollup for macro seasonal trends, or daily line chart for unusual fire days.",
     )
 
     if cal_mode == "📅 Daily Matrix (5×366)":
-        render_daily_matrix(daily_f, region_name, t)
+        render_daily_matrix(daily_f, region_name)
     elif cal_mode == "🗓️ Monthly Heatmap (5×12)":
-        render_monthly_heatmap(daily_f, region_name, t)
+        render_monthly_heatmap(daily_f, region_name)
     else:
-        render_daily_line(daily_f, region_name, t)
-
+        render_daily_line(daily_f, region_name)
 
 # ---------------------------------------------------------------------------
-# Spatial Footprint Tab (Interactive 3D Apple Maps Style Globe & 2D World View)
+# Spatial Footprint Tab (Clean, Uncomplicated 2D Map & 3D Globe)
 # ---------------------------------------------------------------------------
 
-def render_spatial_footprint(det_f, region_name, active_bounds, theme=None):
+def render_spatial_footprint(det_f, region_name, active_bounds):
     """
-    Render Spatial Hotspot Footprint with:
-    - 3D Interactive Rotating Earth Globe (Apple Maps style) where you can spin the Earth
-    - 2D Detailed Interactive Map
-    - Corner world view spin control
-    - Small icon toggle to make map fit the entire screen (fullscreen view)
-    - Side bar to find and jump to California cities, counties, or custom coordinates
+    Render clean spatial map with simple toggle:
+    - 2D Interactive Map (Carto Positron)
+    - 3D Interactive Globe (Click & drag to spin Earth freely)
     """
-    t = theme or get_current_theme()
     if det_f.empty:
         st.info("No hotspots detected for the selected search filters.")
         return
@@ -905,237 +837,137 @@ def render_spatial_footprint(det_f, region_name, active_bounds, theme=None):
     else:
         d_map = det_f.copy()
 
-    # Controls Bar: View Mode, Corner Spin Control, and Fullscreen Icon
-    c_view, c_spin, c_fs = st.columns([2.2, 1.8, 1.2])
-
-    with c_view:
-        view_mode = st.radio(
-            "Display Mode",
-            ["🌍 3D Rotating Globe", "🗺️ 2D Interactive Map"],
+    # Simple, clear mode selector
+    c_mode, c_info = st.columns([2, 3])
+    with c_mode:
+        map_mode = st.radio(
+            "Map Perspective",
+            ["🗺️ 2D Map", "🌍 3D Globe"],
             horizontal=True,
-            label_visibility="collapsed",
         )
-
-    with c_spin:
-        if "3D" in view_mode:
-            spin_deg = st.slider(
-                "🌐 Spin Corner View",
-                min_value=-180,
-                max_value=180,
-                value=-119,
-                step=10,
-                help="Spin the Earth around in 3D. You can also click and drag the globe directly!",
-            )
+    with c_info:
+        if "3D" in map_mode:
+            st.caption("💡 **Tip:** Click and drag the globe with your mouse to freely spin the Earth in 3D.")
         else:
-            map_style_choice = st.selectbox(
-                "Map Layer",
-                ["carto-positron", "open-street-map"],
-                index=0,
-                label_visibility="collapsed",
-            )
+            st.caption("💡 **Tip:** Scroll to zoom in/out, and drag to pan across California.")
 
-    with c_fs:
-        fit_entire_screen = st.toggle(
-            "⛶ Fit Entire Screen",
-            value=False,
-            help="Enlarge map to full screen height and width",
+    center_lat = (active_bounds["min_lat"] + active_bounds["max_lat"]) / 2.0
+    center_lon = (active_bounds["min_lon"] + active_bounds["max_lon"]) / 2.0
+
+    fig = go.Figure()
+
+    for sensor, color, name in [
+        ("MODIS", THEME["modis_color"], "MODIS (Reference)"),
+        ("VIIRS", THEME["accent_flame"], "VIIRS (FRP ≥ 6.5 MW)"),
+    ]:
+        sub = d_map[d_map["sensor"] == sensor]
+        if sub.empty:
+            continue
+
+        sub_sizes = np.clip(np.log1p(sub["frp"].fillna(1)) * 1.5, 3.0, 9.0)
+
+        hover_text = [
+            f"<b>{row.date.strftime('%Y-%m-%d') if hasattr(row.date, 'strftime') else row.date}</b><br>"
+            f"Sensor: {row.sensor} ({row.satellite})<br>"
+            f"FRP: {row.frp:.1f} MW<br>"
+            f"Lat: {row.latitude:.3f}, Lon: {row.longitude:.3f}"
+            for row in sub.itertuples()
+        ]
+
+        if "3D" in map_mode:
+            # 3D Orthographic Globe
+            fig.add_trace(go.Scattergeo(
+                lat=sub["latitude"],
+                lon=sub["longitude"],
+                mode="markers",
+                marker=dict(size=sub_sizes, color=color, opacity=0.75),
+                name=f"{name} ({len(sub):,} pts)",
+                text=hover_text,
+                hoverinfo="text",
+            ))
+        else:
+            # 2D Mapbox
+            fig.add_trace(go.Scattermapbox(
+                lat=sub["latitude"],
+                lon=sub["longitude"],
+                mode="markers",
+                marker=dict(size=sub_sizes, color=color, opacity=0.70),
+                name=f"{name} ({len(sub):,} pts)",
+                text=hover_text,
+                hoverinfo="text",
+            ))
+
+    if "3D" in map_mode:
+        fig.update_geos(
+            projection_type="orthographic",
+            projection_rotation=dict(lon=center_lon, lat=center_lat, roll=0),
+            showocean=True,
+            oceancolor="#EFF6FF",
+            showland=True,
+            landcolor="#F3F4F6",
+            showlakes=True,
+            lakecolor="#EFF6FF",
+            showcountries=True,
+            countrycolor="#CBD5E1",
+            showsubunits=True,
+            subunitcolor="#E2E8F0",
+            showcoastlines=True,
+            coastlinecolor="#94A3B8",
+            coastlinewidth=1,
+            resolution=110,
+            bgcolor="rgba(0,0,0,0)",
         )
-
-    # Dynamic Height for Fullscreen
-    map_height = 840 if fit_entire_screen else 520
-
-    # Layout: If fullscreen, map takes full width. Otherwise, side bar on the right.
-    if fit_entire_screen:
-        map_col = st.container()
-        side_bar_col = None
+        fig.update_layout(
+            title=dict(text=f"🌍 3D Earth Globe View — {region_name}", font=dict(color=THEME["plotly_text"], size=13)),
+            height=540,
+            paper_bgcolor=THEME["plotly_paper"],
+            plot_bgcolor=THEME["plotly_plot"],
+            margin=dict(l=0, r=0, t=35, b=0),
+            legend=dict(
+                x=0.01,
+                y=0.99,
+                bgcolor=THEME["bg_card_solid"],
+                bordercolor=THEME["border_card"],
+                borderwidth=1,
+                font=dict(color=THEME["plotly_text"]),
+            ),
+        )
     else:
-        map_col, side_bar_col = st.columns([3.2, 1.1])
+        fig.update_layout(
+            mapbox=dict(
+                style="carto-positron",
+                center=dict(lat=center_lat, lon=center_lon),
+                zoom=5.6,
+            ),
+            title=dict(text=f"🗺️ 2D Interactive Map — {region_name}", font=dict(color=THEME["plotly_text"], size=13)),
+            height=540,
+            margin=dict(l=0, r=0, t=35, b=0),
+            paper_bgcolor=THEME["plotly_paper"],
+            legend=dict(
+                x=0.01,
+                y=0.99,
+                bgcolor=THEME["bg_card_solid"],
+                bordercolor=THEME["border_card"],
+                borderwidth=1,
+                font=dict(color=THEME["plotly_text"]),
+            ),
+        )
 
-    # Target Coordinates from Location Finder
-    selected_lat = (active_bounds["min_lat"] + active_bounds["max_lat"]) / 2.0
-    selected_lon = (active_bounds["min_lon"] + active_bounds["max_lon"]) / 2.0
-    selected_zoom = 5.5
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"spatial_footprint_{region_name}"))
 
-    # Location Finder Sidebar (Right Column)
-    if side_bar_col is not None:
-        with side_bar_col:
-            st.markdown("#### 📍 Find Location")
-            st.caption("Quickly find cities, counties, and coordinates:")
-
-            loc_name = st.selectbox(
-                "Select City / County",
-                options=list(CALIFORNIA_LOCATIONS.keys()),
-                index=0,
-            )
-            loc_info = CALIFORNIA_LOCATIONS[loc_name]
-            selected_lat = loc_info["lat"]
-            selected_lon = loc_info["lon"]
-            selected_zoom = loc_info["zoom"]
-
-            st.markdown(
-                f"""
-                <div style="background-color: #F8F9FA; border: 1px solid #E4E4E7; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.85rem;">
-                  <div style="font-weight: 700; color: #18181B;">{loc_name}</div>
-                  <div style="color: #52525B; font-size: 0.80rem; margin-top: 2px;">{loc_info['county']}</div>
-                  <div style="color: #71717A; font-family: monospace; margin-top: 6px; font-size: 0.78rem;">
-                    Lat: {loc_info['lat']:.4f}°<br>
-                    Lon: {loc_info['lon']:.4f}°
-                  </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            with st.expander("Custom Coordinates Jump", expanded=False):
-                manual_lat = st.number_input("Lat", value=float(selected_lat), format="%.4f", step=0.1)
-                manual_lon = st.number_input("Lon", value=float(selected_lon), format="%.4f", step=0.1)
-                if st.button("Jump to Coordinates", use_container_width=True):
-                    selected_lat = manual_lat
-                    selected_lon = manual_lon
-                    selected_zoom = 9.0
-
-    # Render Map / Globe inside map_col
-    with map_col:
-        fig = go.Figure()
-
-        # Build Hover Text & Sizes
-        sizes = np.clip(np.log1p(d_map["frp"].fillna(1)) * 1.5, 2.5, 8.5)
-
-        for sensor, color, name in [
-            ("MODIS", t["modis_color"], "MODIS (Reference)"),
-            ("VIIRS", t["accent_flame"], "VIIRS (FRP ≥ 6.5 MW)"),
-        ]:
-            sub = d_map[d_map["sensor"] == sensor]
-            if sub.empty:
-                continue
-
-            sub_sizes = np.clip(np.log1p(sub["frp"].fillna(1)) * 1.5, 2.5, 8.5)
-
-            hover_text = [
-                f"<b>{row.date.strftime('%Y-%m-%d') if hasattr(row.date, 'strftime') else row.date}</b><br>"
-                f"Sensor: {row.sensor} ({row.satellite})<br>"
-                f"FRP: {row.frp:.1f} MW<br>"
-                f"Lat: {row.latitude:.3f}, Lon: {row.longitude:.3f}"
-                for row in sub.itertuples()
-            ]
-
-            if "3D" in view_mode:
-                # 3D Orthographic Globe (Apple Maps style spherical Earth)
-                fig.add_trace(go.Scattergeo(
-                    lat=sub["latitude"],
-                    lon=sub["longitude"],
-                    mode="markers",
-                    marker=dict(
-                        size=sub_sizes,
-                        color=color,
-                        opacity=0.75,
-                    ),
-                    name=f"{name} ({len(sub):,} pts)",
-                    text=hover_text,
-                    hoverinfo="text",
-                ))
-            else:
-                # 2D Mapbox View
-                fig.add_trace(go.Scattermapbox(
-                    lat=sub["latitude"],
-                    lon=sub["longitude"],
-                    mode="markers",
-                    marker=dict(
-                        size=sub_sizes,
-                        color=color,
-                        opacity=0.65,
-                    ),
-                    name=f"{name} ({len(sub):,} pts)",
-                    text=hover_text,
-                    hoverinfo="text",
-                ))
-
-        if "3D" in view_mode:
-            # 3D Rotating Globe Layout
-            effective_lon = spin_deg if 'spin_deg' in locals() else selected_lon
-
-            fig.update_geos(
-                projection_type="orthographic",
-                projection_rotation=dict(lon=effective_lon, lat=selected_lat, roll=0),
-                showocean=True,
-                oceancolor="#E0F2FE",
-                showland=True,
-                landcolor="#F4F4F6",
-                showlakes=True,
-                lakecolor="#E0F2FE",
-                showcountries=True,
-                countrycolor="#CBD5E1",
-                showsubunits=True,
-                subunitcolor="#E2E8F0",
-                showcoastlines=True,
-                coastlinecolor="#94A3B8",
-                coastlinewidth=1,
-                resolution=110,
-                bgcolor="rgba(0,0,0,0)",
-            )
-
-            fig.update_layout(
-                title=dict(
-                    text=f"🌍 3D Earth Globe View — {region_name} (Click & drag Earth to spin)",
-                    font=dict(color=t["plotly_text"], size=13),
-                ),
-                height=map_height,
-                paper_bgcolor=t["plotly_paper"],
-                plot_bgcolor=t["plotly_plot"],
-                margin=dict(l=0, r=0, t=35, b=0),
-                legend=dict(
-                    x=0.01,
-                    y=0.99,
-                    bgcolor=t["bg_card_solid"],
-                    bordercolor=t["border_card"],
-                    borderwidth=1,
-                    font=dict(color=t["plotly_text"]),
-                ),
-            )
-        else:
-            # 2D Mapbox Layout
-            fig.update_layout(
-                mapbox=dict(
-                    style=map_style_choice if 'map_style_choice' in locals() else "carto-positron",
-                    center=dict(lat=selected_lat, lon=selected_lon),
-                    zoom=selected_zoom,
-                ),
-                title=dict(
-                    text=f"🗺️ 2D Interactive Map — {region_name}",
-                    font=dict(color=t["plotly_text"], size=13),
-                ),
-                height=map_height,
-                margin=dict(l=0, r=0, t=35, b=0),
-                paper_bgcolor=t["plotly_paper"],
-                legend=dict(
-                    x=0.01,
-                    y=0.99,
-                    bgcolor=t["bg_card_solid"],
-                    bordercolor=t["border_card"],
-                    borderwidth=1,
-                    font=dict(color=t["plotly_text"]),
-                ),
-            )
-
-        st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"spatial_footprint_{region_name}"))
-
-    # Caption Info
     if sampled:
         st.caption(
             f"ℹ️ Showing **5,000 sampled hotspots** (out of **{total_pts:,}** total in selected region/dates) "
-            "for smooth rendering. Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW). "
-            "In 3D Globe mode, click and drag with your mouse to rotate and spin the Earth."
+            "for clean, high-performance rendering. Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW)."
         )
     else:
         st.caption(
             f"ℹ️ Showing **all {total_pts:,} hotspots** in selected region and date range. "
-            "Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW). "
-            "In 3D Globe mode, click and drag with your mouse to rotate and spin the Earth."
+            "Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW)."
         )
 
-
 # ---------------------------------------------------------------------------
-# Anomaly & Critical Periods Tab
+# Critical Periods & Seasonality Analysis
 # ---------------------------------------------------------------------------
 
 def calculate_season_window(daily_f):
@@ -1162,7 +994,6 @@ def calculate_season_window(daily_f):
         "duration": duration,
     }
 
-
 def calculate_critical_streaks(daily_f, multiplier=3.0, min_streak_len=3):
     """Dynamically identify sustained critical periods where daily burning exceeds multiplier * historical median."""
     d = daily_f.copy().sort_values("date").reset_index(drop=True)
@@ -1182,20 +1013,16 @@ def calculate_critical_streaks(daily_f, multiplier=3.0, min_streak_len=3):
     streaks = streaks[streaks["duration_days"] >= min_streak_len].sort_values("duration_days", ascending=False)
     return streaks
 
-
-def render_anomaly(daily_f, region_name, theme=None):
+def render_anomaly(daily_f, region_name):
     """Daily hotspots vs multi-year median, season window, critical streaks, and anomaly table."""
-    t = theme or get_current_theme()
     d = daily_f.copy()
 
-    # 1. Render the daily line chart
-    render_daily_line(d, region_name, t)
+    render_daily_line(d, region_name)
 
     st.markdown("---")
     st.markdown("### 🚨 Critical Periods & Seasonality Analysis")
-    st.caption("Empirical season boundaries and sustained outbreak streaks calculated dynamically from the active search filter.")
+    st.caption("Empirical season boundaries and sustained outbreak streaks calculated dynamically from your active filter.")
 
-    # 2. Season Window Metrics
     sw = calculate_season_window(d)
     if sw:
         sc1, sc2, sc3 = st.columns(3)
@@ -1203,7 +1030,6 @@ def render_anomaly(daily_f, region_name, theme=None):
         sc2.metric("Core Season Duration", f"{sw['duration']} days", help="Length of the core 80% burning period")
         sc3.metric("Window Concentration", "80% of Hotspots", help="Percentage of burning contained within this seasonal window")
 
-    # 3. Sustained Critical Outbreak Streaks
     streaks = calculate_critical_streaks(d, multiplier=3.0, min_streak_len=3)
     if not streaks.empty:
         st.markdown("**Sustained Critical Outbreak Streaks (≥ 3 consecutive days at > 3× historical median):**")
@@ -1218,7 +1044,6 @@ def render_anomaly(daily_f, region_name, theme=None):
         st.info("No sustained multi-day outbreak streaks (> 3× median for ≥ 3 consecutive days) detected in this selection.")
 
     st.markdown("---")
-    # 4. Top 10 anomaly table
     top10 = d.nlargest(10, "anomaly_hotspots")[["date", "raw_modis_hotspots", "raw_viirs_hotspots", "harmonised_hotspots", "median_hotspots", "anomaly_hotspots"]].copy()
     top10["date"] = top10["date"].dt.strftime("%Y-%m-%d")
     top10.columns = ["Date", "MODIS (Raw)", "VIIRS (Raw)", "Harmonised", "Median", "Anomaly"]
@@ -1229,33 +1054,17 @@ def render_anomaly(daily_f, region_name, theme=None):
 # Situational Awareness Tab (Provisional NRT & Historical Comparison)
 # ---------------------------------------------------------------------------
 
-def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice, theme=None):
-    """
-    Render 📡 Situational Awareness tab:
-    - Provenance banner (always visible at top)
-    - Zero API calls on initial load
-    - Empty state when no NRT data fetched yet
-    - Optional '🔄 Fetch Live FIRMS NRT' button with fallback protection
-    - 30-day recent comparison chart: Provisional NRT vs. SP Historical Median
-    - Separate NRT CSV download with provenance column
-    """
-    t = theme or get_current_theme()
-    # 1. Provenance Banner (Exact wording, always visible at the top)
+def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice):
+    """Provisional NRT & Historical Comparison tab."""
     st.warning(PROVENANCE_BANNER_TEXT)
 
-    # 2. Coverage Notice for historical baseline
     if cov_status == "OUT_OF_COVERAGE":
         st.warning("Selected area is outside the California data archive — no coverage.")
-        st.caption(
-            "Historical median comparison is unavailable for coordinates outside California. "
-            "However, live NASA FIRMS NRT queries are supported globally for your active bounding box."
-        )
+        st.caption("Historical median comparison is unavailable for coordinates outside California.")
 
-    # State key for this region's NRT session data
     state_key = f"nrt_data_{region_choice}"
     fallback_key = f"nrt_fallback_{region_choice}"
 
-    # 3. Action controls & fetch button
     c_btn, c_info = st.columns([1.5, 3.5])
     with c_btn:
         fetch_clicked = st.button("🔄 Fetch Live FIRMS NRT", use_container_width=True)
@@ -1266,7 +1075,6 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
             f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]"
         )
 
-    # Handle live fetch button click
     if fetch_clicked:
         with st.spinner("Connecting to NASA FIRMS Area API (last 30 days) …"):
             success, status, raw_nrt_df = fetch_nrt_data(active_bounds, timeout=15)
@@ -1285,25 +1093,20 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
                     "bounds": active_bounds,
                 }
 
-    # 4. Fallback banner on failure (exact wording)
     if st.session_state.get(fallback_key, False):
         st.info(FALLBACK_BANNER_TEXT)
 
-    # Retrieve cached session data if available
     nrt_session = st.session_state.get(state_key, None)
     harmonised_nrt_df = nrt_session["harmonised_df"] if nrt_session else None
 
-    # 5. Build 30-day comparison dataframe
     comp_df = build_comparison_series(
         harmonised_nrt_df=harmonised_nrt_df,
         daily_historical=daily_f if cov_status != "OUT_OF_COVERAGE" else None,
         cov_status=cov_status,
     )
 
-    # 6. Chart rendering
     fig = go.Figure()
 
-    # Historical Median trace (if in coverage)
     if cov_status != "OUT_OF_COVERAGE" and "median_hotspots" in comp_df.columns and comp_df["median_hotspots"].notna().any():
         fig.add_trace(
             go.Scatter(
@@ -1311,11 +1114,10 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
                 y=comp_df["median_hotspots"],
                 name="Historical median — SP 2020–2024, same day-of-year",
                 mode="lines",
-                line=dict(color=t["modis_color"], width=2.0, dash="dash"),
+                line=dict(color=THEME["modis_color"], width=2.0, dash="dash"),
             )
         )
 
-    # Provisional NRT trace (if live data fetched)
     has_nrt = harmonised_nrt_df is not None and not harmonised_nrt_df.empty
     if has_nrt:
         fig.add_trace(
@@ -1324,8 +1126,8 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
                 y=comp_df["nrt_hotspots"],
                 name="Provisional NRT — daily count (this fetch)",
                 mode="lines+markers",
-                line=dict(color=t["accent_crimson"], width=2.0),
-                marker=dict(size=5, color=t["accent_crimson"]),
+                line=dict(color=THEME["accent_crimson"], width=2.0),
+                marker=dict(size=5, color=THEME["accent_crimson"]),
             )
         )
 
@@ -1333,42 +1135,27 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
     fig.update_layout(
         title=dict(
             text=f"Provisional NRT Observations vs. Historical Median (Last 30 Days) — {region_choice}",
-            font=dict(color=t["plotly_text"], size=13),
+            font=dict(color=THEME["plotly_text"], size=13),
         ),
-        xaxis=dict(
-            title="Observation Date",
-            gridcolor=t["plotly_grid"],
-            tickfont=dict(color=t["plotly_text"], size=10),
-        ),
-        yaxis=dict(
-            title="Daily Hotspots Count",
-            gridcolor=t["plotly_grid"],
-            tickfont=dict(color=t["plotly_text"], size=10),
-        ),
-        paper_bgcolor=t["plotly_paper"],
-        plot_bgcolor=t["plotly_plot"],
+        xaxis=dict(title="Observation Date", gridcolor=THEME["plotly_grid"], tickfont=dict(color=THEME["plotly_text"], size=10)),
+        yaxis=dict(title="Daily Hotspots Count", gridcolor=THEME["plotly_grid"], tickfont=dict(color=THEME["plotly_text"], size=10)),
+        paper_bgcolor=THEME["plotly_paper"],
+        plot_bgcolor=THEME["plotly_plot"],
         height=370,
         legend=dict(
             x=0.01,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
-            bgcolor=t["bg_card_solid"],
-            bordercolor=t["border_card"],
+            font=dict(color=THEME["plotly_text"]),
+            bgcolor=THEME["bg_card_solid"],
+            bordercolor=THEME["border_card"],
             borderwidth=1,
         ),
         margin=dict(l=50, r=40, t=50, b=50),
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=get_plotly_config(f"situational_awareness_{clean_region}"),
-    )
-
-    # Caption (exact wording)
+    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"situational_awareness_{clean_region}"))
     st.caption(CAPTION_TEXT)
 
-    # 7. Empty state or Audit stats
     if not has_nrt:
         st.info(EMPTY_STATE_TEXT)
     else:
@@ -1387,7 +1174,6 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
         )
         st.caption(f"🔬 *{THRESHOLD_LABEL_TEXT}*")
 
-        # 8. Separate CSV download for NRT data (Section 7 rule)
         nrt_export = harmonised_nrt_df.copy()
         nrt_export["provenance"] = "NRT provisional"
         today_str = date.today().isoformat()
@@ -1400,17 +1186,16 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
         )
 
 # ---------------------------------------------------------------------------
-# Why Harmonisation Tab
+# Why Harmonisation & Downloads Tab
 # ---------------------------------------------------------------------------
 
-def render_why_harmonisation(daily_f, theme=None):
-    t = theme or get_current_theme()
+def render_why_harmonisation(daily_f):
     st.markdown(
         """
         ### Why Harmonisation Matters
         MODIS (1,000 m pixel resolution) and VIIRS (375 m pixel resolution) are fundamentally different instruments.
         Because VIIRS has higher spatial resolution, it detects lower-intensity and smaller fire hotspots that fall below
-        MODIS detection limits. 
+        MODIS detection limits.
 
         Without harmonisation, transitioning between sensors causes an apparent jump in hotspot activity that is a 
         sensor artefact, not a real physical fire increase.
@@ -1426,7 +1211,6 @@ def render_why_harmonisation(daily_f, theme=None):
         st.image(str(DISCONTINUITY_PNG), use_column_width=True)
         st.caption("Historical Demonstration: The 2011–2013 S-NPP launch discontinuity.")
 
-    # Annual breakdown bar chart
     d = daily_f.copy()
     d["year"] = d["date"].dt.year
     agg = d.groupby("year").agg({
@@ -1436,41 +1220,35 @@ def render_why_harmonisation(daily_f, theme=None):
     }).reset_index()
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_modis_hotspots"], name="MODIS (Raw)", marker_color=t["modis_color"]))
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_viirs_hotspots"], name="VIIRS (Raw)", marker_color=t["viirs_color"]))
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["harmonised_hotspots"], name="Harmonised (Thresholded)", marker_color=t["accent_flame"]))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_modis_hotspots"], name="MODIS (Raw)", marker_color=THEME["modis_color"]))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_viirs_hotspots"], name="VIIRS (Raw)", marker_color=THEME["viirs_color"]))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["harmonised_hotspots"], name="Harmonised (Thresholded)", marker_color=THEME["accent_flame"]))
 
     fig.update_layout(
         barmode="group",
-        title=dict(text="Raw vs. Harmonised Annual Hotspot Counts (Selected Area)", font=dict(color=t["plotly_text"], size=13)),
-        xaxis=dict(title="Year", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
-        yaxis=dict(title="Total Hotspots", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        title=dict(text="Raw vs. Harmonised Annual Hotspot Counts (Selected Area)", font=dict(color=THEME["plotly_text"], size=13)),
+        xaxis=dict(title="Year", tickfont=dict(color=THEME["plotly_text"]), gridcolor=THEME["plotly_grid"]),
+        yaxis=dict(title="Total Hotspots", tickfont=dict(color=THEME["plotly_text"]), gridcolor=THEME["plotly_grid"]),
         height=340,
-        paper_bgcolor=t["plotly_paper"],
-        plot_bgcolor=t["plotly_plot"],
+        paper_bgcolor=THEME["plotly_paper"],
+        plot_bgcolor=THEME["plotly_plot"],
         legend=dict(
             x=0.01,
             y=0.99,
-            font=dict(color=t["plotly_text"]),
-            bgcolor=t["bg_card_solid"],
-            bordercolor=t["border_card"],
+            font=dict(color=THEME["plotly_text"]),
+            bgcolor=THEME["bg_card_solid"],
+            bordercolor=THEME["border_card"],
             borderwidth=1,
         ),
         margin=dict(l=50, r=40, t=50, b=50),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config("annual_sensor_comparison"))
 
-# ---------------------------------------------------------------------------
-# Search CSV Downloads (Slices to User's Selected Region & Date Range)
-# ---------------------------------------------------------------------------
-
-def render_downloads(daily_f, det_f, region_name, date_range, theme=None):
-    st.markdown("### Download Search Analytics")
+def render_downloads(daily_f, det_f, region_name, date_range):
+    st.markdown("### 📥 Download Sliced Data")
     st.caption(f"Exports are dynamically sliced to your chosen region (**{region_name}**) and dates (**{date_range[0]} to {date_range[1]}**).")
 
     c1, c2 = st.columns(2)
-
-    # 1. Daily aggregated series download
     daily_export = daily_f.copy()
     daily_export["date"] = daily_export["date"].dt.strftime("%Y-%m-%d")
     clean_region = region_name.replace(" ", "_").replace("—", "").replace("/", "_").replace("(", "").replace(")", "").strip("_")
@@ -1485,7 +1263,6 @@ def render_downloads(daily_f, det_f, region_name, date_range, theme=None):
             help="Daily harmonised hotspot series for the selected search",
         )
 
-    # 2. Per-detection download
     det_export = det_f.copy()
     if not det_export.empty and "date" in det_export.columns:
         det_export["date"] = det_export["date"].dt.strftime("%Y-%m-%d")
@@ -1500,20 +1277,11 @@ def render_downloads(daily_f, det_f, region_name, date_range, theme=None):
             help="Individual hotspot records for the selected search",
         )
 
-    # 3. Visualizations export guidance
-    st.markdown("#### 📷 Visualizations Export (Download Current View)")
-    st.caption(
-        "Every interactive chart (Daily Matrix, Monthly Heatmap, Spatial Footprint, and Anomaly Line) "
-        "features a built-in **camera icon ('Download plot as png')** in its top-right toolbar. "
-        "Hover over the top-right corner of any chart and click the camera icon to save a "
-        "high-resolution 2× PNG image matching your exact region and date filter."
-    )
-
 # ---------------------------------------------------------------------------
 # Method & Limitations
 # ---------------------------------------------------------------------------
 
-def render_method_box(theme=None):
+def render_method_box():
     with st.expander("📋 Method and Limitations", expanded=False):
         st.markdown(
             r"""
@@ -1530,7 +1298,7 @@ def render_method_box(theme=None):
             ---
 
             **Biome Stability Check (Sub-Region Transferability):**  
-            Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in fast-moving chaparral fires favouring VIIRS 375 m pixels. This is evidence the threshold behaves similarly across forest biomes in California — it is not proof of perfect transfer, and it has not been validated outside California.
+            Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in fast-moving chaparral fires favouring VIIRS 375 m pixels.
 
             | Sub-Region / Biome | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio |
             | :--- | :---: | :---: | :---: | :---: |
@@ -1539,13 +1307,9 @@ def render_method_box(theme=None):
             | Southern Chaparral | 7,350 | 18,199 | 25,549 | 2.48 |
             | **3-Biome Subtotal** | **93,076** | **188,671** | **281,747** | **2.03** |
 
-            *Note on Remainder:* The three sub-region bboxes do not cover all of California. 65,427 harmonised detections (18.8% of statewide 347,174) fall outside Northern Forests, Sierra Nevada/Central, and Southern Chaparral — primarily Central Valley, coastal, and inter-bbox areas. (With half-open boundary upper limits, subtotal is 281,739 with 65,435 remainder). They are included in the statewide total, but not in any biome subtotal.
-
             ---
 
             **Constellation Expansion & Annual Breakdown:**  
-            Harmonised VIIRS/MODIS ratio was 1.99 in 2020, 1.82 in 2021, 1.36 in 2022, 2.74 in 2023, and 3.21 in 2024. The rise in 2023–2024 coincides with NOAA-21 becoming operational in 2023, giving two VIIRS satellites instead of one. Fire-year variability also affects the ratio (2022 was a low fire year), so this is consistent with, not proof of, satellite-hour scaling. A multi-decade series would need explicit satellite-hour normalisation.
-
             | Observation Year | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio | Active Satellites in Scope |
             | :---: | :---: | :---: | :---: | :---: | :--- |
             | 2020 | 46,823 | 93,269 | 140,092 | 1.99 | Terra, Aqua, NOAA-20 |
@@ -1556,35 +1320,10 @@ def render_method_box(theme=None):
 
             ---
 
-            **Viewing Zenith Angle (VZA) & Detection Truncation Finding:**  
-            In our 2020 MODIS sample, median FRP rises with scan size, from 29.1 MW near nadir (1.0–1.5 km) to 159.8 MW at swath edge (3.0–5.0 km). This is consistent with detection truncation / selection bias: at swath edge, pixel area expands ~10×, background radiance is larger, and faint fires fall below detection — only large fires are seen. A scalar multiplier to 'boost' edge FRP would therefore inflate fires that are already large. This does not rule out FRP underestimation for a given fire at large viewing angle — that would require matched pairs of the same fire seen at nadir and at edge, which we have not done. VZA correction remains a documented frontier, not a solved problem.
-
-            | Scan Bin (Pixel Width) | Position in Swath | Detections Count | Mean FRP (MW) | Median FRP (MW) | 75th %ile FRP (MW) |
-            | :--- | :--- | :---: | :---: | :---: | :---: |
-            | 1.0 – 1.5 km | Near Nadir | 29,488 | 84.5 MW | 29.1 MW | 68.0 MW |
-            | 1.5 – 2.0 km | Mid-Swath | 7,675 | 156.5 MW | 54.6 MW | 124.9 MW |
-            | 2.0 – 3.0 km | Off-Nadir | 6,157 | 254.3 MW | 84.2 MW | 200.3 MW |
-            | 3.0 – 5.0 km | Swath Edge | 4,633 | 409.1 MW | 159.8 MW | 376.0 MW |
-            | **Total Reconciled** | | **47,953** | | | |
-
-            *Reconciliation Note:* All 47,953 raw MODIS detections in 2020 reconcile exactly across the 4 bins. (Exactly 11,087 detections fall at nadir `scan == 1.0 km`, which require inclusive lower bin boundaries `[1.0, 1.5]`).
-
-            ---
-
-            **External Consistency Check (CAL FIRE 2020 & 2021 Archives):**  
-            External check (CAL FIRE 2020 Incident Archive): our peak day, 2020-09-09 (10,320 hotspots), falls during the peak burning of the August Complex (started Aug 16, 2020, 1,032,648 acres) and Creek Fire (started Sep 4, 2020, 379,895 acres). Our 21-day streak, Aug 30 – Sep 19, 2020 (66,764 hotspots), matches the simultaneous explosive growth of the August Complex, Creek Fire, and North Complex (started Aug 17, 2020, 318,935 acres). Furthermore, our 23-day streak, Aug 1–23, 2021 (48,049 hotspots), coincides with the peak run of the Dixie Fire (started Jul 13, 2021, 963,309 acres). This is an external consistency check against official agency incident records, not a formal calibration against post-fire burned area perimeters.
-
-            ---
-
             **Spatial & Temporal Scope:**
             - Data source: NASA Earthdata FIRMS active fire products.
             - Spatial scope: California state boundary (US Census TIGER/Line 2023).
-            - Temporal scope: 2020-01-01 to 2024-12-31 (plus 2011–2013 historical demonstration). Expanding to the full early-2000s to present archive is planned future work.
-
-            **Known Scope Limitations:**
-            - **Industrial Heat / Gas Flares:** Static heat sources (Type 2, ~7% of detections) are retained in the dataset and not filtered out.
-            - **Orbital Drift:** Terra and Aqua experienced local overpass time drift post-2021 (Terra drifted earlier by ~44 min, Aqua drifted later by ~40 min by 2024), which affects diurnal sampling.
-            - **Baseline:** The historical median is computed across 2020–2024 only, which is heavily influenced by the extreme 2020 California fire season.
+            - Temporal scope: 2020-01-01 to 2024-12-31.
             """
         )
 
@@ -1592,12 +1331,11 @@ def render_method_box(theme=None):
 # Footer
 # ---------------------------------------------------------------------------
 
-def render_footer(theme=None):
-    t = theme or get_current_theme()
+def render_footer():
     st.markdown(
-        f"""
-        <div style="text-align: center; color: {t['text_muted']}; font-size: 0.82rem; margin-top: 28px; padding-top: 16px; border-top: 1px solid {t['border_card']};">
-          <strong>Sekhmet Sync</strong> • <a href="https://sekhmet-sync.streamlit.app/" target="_blank" style="color: {t['text_secondary']}; text-decoration: none; font-weight: 500;">sekhmet-sync.streamlit.app</a><br>
+        """
+        <div style="text-align: center; color: #6B7280; font-size: 0.82rem; margin-top: 28px; padding-top: 16px; border-top: 1px solid #E5E7EB;">
+          <strong>Sekhmet Sync</strong> • <a href="https://sekhmet-sync.streamlit.app/" target="_blank" style="color: #4B5563; text-decoration: none; font-weight: 500;">sekhmet-sync.streamlit.app</a><br>
           <span style="font-size: 0.78rem; opacity: 0.85;">Data: NASA FIRMS (Public Domain) • California 2020–2024 Archive • No NASA logos used</span>
         </div>
         """,
@@ -1609,10 +1347,8 @@ def render_footer(theme=None):
 # ---------------------------------------------------------------------------
 
 def main():
-    theme = get_current_theme()
-
-    st.markdown(get_global_css(theme), unsafe_allow_html=True)
-    render_header(theme)
+    st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+    render_header()
 
     region_choice, custom_bounds, date_range = render_sidebar()
 
@@ -1623,12 +1359,10 @@ def main():
         st.error("Missing harmonised datasets in `data/`. Run `python build_daily_harmonized.py` first.")
         st.stop()
 
-    # Filter data to selected region and dates
     daily_f, det_f, cov_status, active_bounds = filter_data(
         daily_statewide, detections, region_choice, custom_bounds, date_range
     )
 
-    # Handle out-of-coverage rule for historical baseline
     if cov_status == "OUT_OF_COVERAGE":
         st.warning("Selected area is outside the California data archive — no coverage.")
         st.info(
@@ -1637,8 +1371,7 @@ def main():
             "Historical baseline tabs are restricted to this bounding box. Global live queries are available in the 📡 Situational Awareness tab."
         )
     else:
-        # Render always-visible Stat Cards
-        render_stat_cards(daily_f, theme)
+        render_stat_cards(daily_f)
 
     if cov_status == "PARTIAL_OVERLAP":
         st.info(
@@ -1649,7 +1382,6 @@ def main():
 
     st.divider()
 
-    # Interactive Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📅 Burning Calendar",
         "🗺️ Spatial Footprint",
@@ -1662,33 +1394,33 @@ def main():
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_calendar(daily_f, region_choice, theme)
+            render_calendar(daily_f, region_choice)
 
     with tab2:
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_spatial_footprint(det_f, region_choice, active_bounds, theme)
+            render_spatial_footprint(det_f, region_choice, active_bounds)
 
     with tab3:
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_anomaly(daily_f, region_choice, theme)
+            render_anomaly(daily_f, region_choice)
 
     with tab4:
-        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice, theme)
+        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice)
 
     with tab5:
-        render_why_harmonisation(daily_statewide, theme)
+        render_why_harmonisation(daily_statewide)
+        st.markdown("---")
+        if cov_status != "OUT_OF_COVERAGE":
+            render_downloads(daily_f, det_f, region_choice, date_range)
+        else:
+            st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
 
-    st.divider()
-    if cov_status != "OUT_OF_COVERAGE":
-        render_downloads(daily_f, det_f, region_choice, date_range, theme)
-    else:
-        st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
-    render_method_box(theme)
-    render_footer(theme)
+    render_method_box()
+    render_footer()
 
 if __name__ == "__main__":
     main()
