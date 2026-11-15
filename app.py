@@ -459,17 +459,7 @@ def render_header(is_extended: bool = False):
         """,
         unsafe_allow_html=True,
     )
-    st.markdown(
-        """
-        <div style="background-color: #F9FAFB; border-left: 3px solid #D97706;
-                    border-radius: 0 4px 4px 0; padding: 8px 12px; margin-bottom: 14px;
-                    color: #4B5563; font-size: 0.82rem;">
-          ⚠️ <strong>Harmonization Notice:</strong> Applies an experimental <strong>6.5 MW FRP threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See the methodology in the footer for more details.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    
 # ---------------------------------------------------------------------------
 # Sidebar Controls
 # ---------------------------------------------------------------------------
