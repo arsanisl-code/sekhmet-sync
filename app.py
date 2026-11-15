@@ -95,7 +95,7 @@ REGIONS = {
 # Themes: Dark (Black) and Light (White)
 # ---------------------------------------------------------------------------
 
-THEMES = {
+THEMES = 
     "Light (White)": {
         "name": "light",
         "bg_app": "#FFFFFF",
