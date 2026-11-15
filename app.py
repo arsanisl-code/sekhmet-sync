@@ -22,37 +22,16 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-# Ensure repository root is on sys.path for reliable imports in all cloud environments
-APP_DIR = Path(__file__).resolve().parent
-if str(APP_DIR) not in sys.path:
-    sys.path.insert(0, str(APP_DIR))
-
-try:
-    from situational_awareness import (
-        fetch_nrt_data,
-        harmonize_nrt_data,
-        build_comparison_series,
-        FALLBACK_BANNER_TEXT,
-        PROVENANCE_BANNER_TEXT,
-        THRESHOLD_LABEL_TEXT,
-        EMPTY_STATE_TEXT,
-        CAPTION_TEXT,
-    )
-except KeyError:
-    # Protect against live reload / file-watcher race in importlib
-    import importlib
-    import situational_awareness
-    importlib.reload(situational_awareness)
-    from situational_awareness import (
-        fetch_nrt_data,
-        harmonize_nrt_data,
-        build_comparison_series,
-        FALLBACK_BANNER_TEXT,
-        PROVENANCE_BANNER_TEXT,
-        THRESHOLD_LABEL_TEXT,
-        EMPTY_STATE_TEXT,
-        CAPTION_TEXT,
-    )
+from situational_awareness import (
+    fetch_nrt_data,
+    harmonize_nrt_data,
+    build_comparison_series,
+    FALLBACK_BANNER_TEXT,
+    PROVENANCE_BANNER_TEXT,
+    THRESHOLD_LABEL_TEXT,
+    EMPTY_STATE_TEXT,
+    CAPTION_TEXT,
+)
 
 # ---------------------------------------------------------------------------
 # Page configuration
@@ -65,9 +44,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-DAILY_CSV = APP_DIR / "data" / "daily_series_harmonised.csv"
-DETECTIONS_CSV = APP_DIR / "data" / "harmonised_detections.csv"
-DISCONTINUITY_PNG = APP_DIR / "exports" / "discontinuity.png"
+DAILY_CSV = Path("data/daily_series_harmonised.csv")
+DETECTIONS_CSV = Path("data/harmonised_detections.csv")
+DISCONTINUITY_PNG = Path("exports/discontinuity.png")
 
 # ---------------------------------------------------------------------------
 # Sub-region bounding boxes (Single source of truth)
