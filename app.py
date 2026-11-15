@@ -611,7 +611,7 @@ def render_daily_line(daily_f, region_name):
         height=360,
         paper_bgcolor="#E8DCC4",
         plot_bgcolor="#E8DCC4",
-        legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
+        legend=dict(x=0.99, y=0.99, xanchor="right", font=dict(color="#1C1B1A")),
         margin=dict(l=50, r=40, t=45, b=45),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
