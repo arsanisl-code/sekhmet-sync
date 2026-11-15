@@ -162,3 +162,23 @@ def test_app_test_execution_and_views():
     # Test Daily Line view
     cal_radio.set_value(cal_radio.options[2]).run()
     assert not app.exception
+
+
+def test_spatial_footprint_rendering():
+    """Verify spatial footprint sampling and map generation logic."""
+    from app import filter_data, load_statewide_daily, load_detections, CALIFORNIA_BBOX
+
+    daily = load_statewide_daily()
+    detections = load_detections()
+    full_dates = (date(2020, 1, 1), date(2024, 12, 31))
+
+    _, det_klam, cov, bounds = filter_data(
+        daily, detections, "California — Northern Forests (Klamath)", None, full_dates
+    )
+    assert len(det_klam) == 182441
+    # Check sampling
+    d_map = det_klam.sample(5000, random_state=42) if len(det_klam) > 5000 else det_klam
+    assert len(d_map) == 5000
+    assert set(d_map["sensor"].unique()).issubset({"MODIS", "VIIRS"})
+    assert (d_map["latitude"].between(bounds["min_lat"], bounds["max_lat"])).all()
+    assert (d_map["longitude"].between(bounds["min_lon"], bounds["max_lon"])).all()

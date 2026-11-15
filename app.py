@@ -611,6 +611,116 @@ def render_calendar(daily_f, region_name):
 
 
 # ---------------------------------------------------------------------------
+# Spatial Footprint Tab (Where Burning Occurred)
+# ---------------------------------------------------------------------------
+
+def render_spatial_footprint(det_f, region_name, active_bounds):
+    """Render Plotly OpenStreetMap of harmonised hotspot locations."""
+    if det_f.empty:
+        st.info("No hotspots detected for the selected search filters.")
+        return
+
+    total_pts = len(det_f)
+    sampled = False
+    if total_pts > 5000:
+        d_map = det_f.sample(5000, random_state=42).copy()
+        sampled = True
+    else:
+        d_map = det_f.copy()
+
+    # Center coordinates from active bounding box
+    center_lat = (active_bounds["min_lat"] + active_bounds["max_lat"]) / 2.0
+    center_lon = (active_bounds["min_lon"] + active_bounds["max_lon"]) / 2.0
+
+    # Dynamic zoom level based on bounding box span
+    lat_span = active_bounds["max_lat"] - active_bounds["min_lat"]
+    lon_span = active_bounds["max_lon"] - active_bounds["min_lon"]
+    max_span = max(lat_span, lon_span)
+    if max_span > 6.0:
+        zoom = 5.0
+    elif max_span > 3.0:
+        zoom = 6.0
+    elif max_span > 1.5:
+        zoom = 7.0
+    else:
+        zoom = 8.0
+
+    fig = go.Figure()
+
+    # Separate traces for MODIS (Lapis) and VIIRS (Amber)
+    for sensor, color, name in [
+        ("MODIS", "#1B365D", "MODIS (Reference)"),
+        ("VIIRS", "#C68B25", "VIIRS (FRP ≥ 6.5 MW)"),
+    ]:
+        sub = d_map[d_map["sensor"] == sensor]
+        if sub.empty:
+            continue
+
+        # Scale marker size logarithmically by FRP (2.5 to 8.5 px)
+        sizes = np.clip(np.log1p(sub["frp"].fillna(1)) * 1.5, 2.5, 8.5)
+
+        hover_text = [
+            f"<b>{row.date.strftime('%Y-%m-%d') if hasattr(row.date, 'strftime') else row.date}</b><br>"
+            f"Sensor: {row.sensor} ({row.satellite})<br>"
+            f"FRP: {row.frp:.1f} MW<br>"
+            f"Lat: {row.latitude:.3f}, Lon: {row.longitude:.3f}"
+            for row in sub.itertuples()
+        ]
+
+        fig.add_trace(go.Scattermapbox(
+            lat=sub["latitude"],
+            lon=sub["longitude"],
+            mode="markers",
+            marker=dict(
+                size=sizes,
+                color=color,
+                opacity=0.6,
+            ),
+            name=f"{name} ({len(sub):,} pts)",
+            text=hover_text,
+            hoverinfo="text",
+        ))
+
+    fig.update_layout(
+        mapbox=dict(
+            style="open-street-map",
+            center=dict(lat=center_lat, lon=center_lon),
+            zoom=zoom,
+        ),
+        title=dict(
+            text=f"Spatial Hotspot Footprint — {region_name}",
+            font=dict(color="#1C1B1A", size=13),
+        ),
+        height=480,
+        margin=dict(l=10, r=10, t=40, b=10),
+        paper_bgcolor="#E8DCC4",
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            bgcolor="#D8C3A5",
+            bordercolor="#1C1B1A",
+            borderwidth=1,
+            font=dict(color="#1C1B1A"),
+        ),
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    if sampled:
+        st.caption(
+            f"ℹ️ Showing **5,000 sampled hotspots** (out of **{total_pts:,}** total in selected region/dates) "
+            "for smooth, fast rendering. Points are colored by sensor: Lapis = MODIS, Amber = VIIRS (≥ 6.5 MW). "
+            "Marker size scales logarithmically with Fire Radiative Power (MW)."
+        )
+    else:
+        st.caption(
+            f"ℹ️ Showing **all {total_pts:,} hotspots** in selected region and date range. "
+            "Points are colored by sensor: Lapis = MODIS, Amber = VIIRS (≥ 6.5 MW). "
+            "Marker size scales logarithmically with Fire Radiative Power (MW)."
+        )
+
+
+# ---------------------------------------------------------------------------
 # Anomaly Tab
 # ---------------------------------------------------------------------------
 
@@ -803,8 +913,9 @@ def main():
     st.divider()
 
     # Interactive Tabs
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "📅 Burning Calendar",
+        "🗺️ Spatial Footprint",
         "📈 Anomaly Analysis",
         "❓ Why Harmonisation",
     ])
@@ -813,9 +924,12 @@ def main():
         render_calendar(daily_f, region_choice)
 
     with tab2:
-        render_anomaly(daily_f, region_choice)
+        render_spatial_footprint(det_f, region_choice, active_bounds)
 
     with tab3:
+        render_anomaly(daily_f, region_choice)
+
+    with tab4:
         render_why_harmonisation(daily_f)
 
     st.divider()
