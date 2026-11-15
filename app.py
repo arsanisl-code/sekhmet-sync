@@ -9,7 +9,7 @@ Reads precomputed files only:
   - data/harmonised_detections.csv
   - exports/discontinuity.png (optional historical demo)
 
-No NASA logos. Stable, human-crafted design with Dark (Black) and Light (White) themes.
+No NASA logos. Crisp modern white theme with interactive 3D Globe & 2D world view.
 """
 
 import sys
@@ -92,93 +92,80 @@ REGIONS = {
 }
 
 # ---------------------------------------------------------------------------
-# Themes: Dark (Black) and Light (White)
+# Curated California Cities, Counties & Incident Landmarks Finder
 # ---------------------------------------------------------------------------
 
-THEMES = {
-    "Dark (Black)": {
-        "name": "dark",
-        "bg_app": "#0A0A0B",
-        "bg_sidebar": "#111113",
-        "bg_card": "#161618",
-        "bg_card_solid": "#161618",
-        "border_card": "#27272A",
-        "text_primary": "#F4F4F5",
-        "text_secondary": "#A1A1AA",
-        "text_muted": "#71717A",
-        "accent_flame": "#EF4444",
-        "accent_flame_light": "#F87171",
-        "accent_gold": "#F59E0B",
-        "accent_crimson": "#DC2626",
-        "modis_color": "#38BDF8",
-        "viirs_color": "#FB923C",
-        "median_color": "#10B981",
-        "plotly_paper": "rgba(0,0,0,0)",
-        "plotly_plot": "rgba(0,0,0,0)",
-        "plotly_grid": "rgba(255, 255, 255, 0.08)",
-        "plotly_text": "#F4F4F5",
-        "map_style": "carto-darkmatter",
-        "btn_bg": "#27272A",
-        "btn_hover": "#3F3F46",
-        "btn_text": "#FFFFFF",
-        "colorscale": [
-            [0.00, "#161618"],
-            [0.05, "#1F2937"],
-            [0.25, "#B45309"],
-            [0.55, "#EA580C"],
-            [0.80, "#DC2626"],
-            [1.00, "#FBBF24"],
-        ],
-    },
-    "Light (White)": {
-        "name": "light",
-        "bg_app": "#FFFFFF",
-        "bg_sidebar": "#F8F9FA",
-        "bg_card": "#F4F4F6",
-        "bg_card_solid": "#FFFFFF",
-        "border_card": "#E4E4E7",
-        "text_primary": "#18181B",
-        "text_secondary": "#52525B",
-        "text_muted": "#71717A",
-        "accent_flame": "#DC2626",
-        "accent_flame_light": "#EF4444",
-        "accent_gold": "#D97706",
-        "accent_crimson": "#B91C1C",
-        "modis_color": "#0284C7",
-        "viirs_color": "#EA580C",
-        "median_color": "#059669",
-        "plotly_paper": "rgba(0,0,0,0)",
-        "plotly_plot": "rgba(0,0,0,0)",
-        "plotly_grid": "rgba(0, 0, 0, 0.07)",
-        "plotly_text": "#18181B",
-        "map_style": "carto-positron",
-        "btn_bg": "#18181B",
-        "btn_hover": "#27272A",
-        "btn_text": "#FFFFFF",
-        "colorscale": [
-            [0.00, "#FFFFFF"],
-            [0.05, "#FEF3C7"],
-            [0.30, "#F59E0B"],
-            [0.70, "#DC2626"],
-            [1.00, "#7F1D1D"],
-        ],
-    },
+CALIFORNIA_LOCATIONS = {
+    "Statewide View": {"lat": 37.25, "lon": -119.5, "county": "Statewide", "zoom": 5.5},
+    "Los Angeles": {"lat": 34.0522, "lon": -118.2437, "county": "Los Angeles County", "zoom": 9.5},
+    "San Diego": {"lat": 32.7157, "lon": -117.1611, "county": "San Diego County", "zoom": 9.5},
+    "San Francisco / Bay Area": {"lat": 37.7749, "lon": -122.4194, "county": "San Francisco County", "zoom": 9.5},
+    "San Jose / Silicon Valley": {"lat": 37.3382, "lon": -121.8863, "county": "Santa Clara County", "zoom": 9.5},
+    "Sacramento (State Capital)": {"lat": 38.5816, "lon": -121.4944, "county": "Sacramento County", "zoom": 9.5},
+    "Fresno / San Joaquin Valley": {"lat": 36.7468, "lon": -119.7726, "county": "Fresno County", "zoom": 9.5},
+    "Bakersfield": {"lat": 35.3733, "lon": -119.0187, "county": "Kern County", "zoom": 9.5},
+    "Redding / Shasta": {"lat": 40.5865, "lon": -122.3917, "county": "Shasta County", "zoom": 9.0},
+    "Paradise / Chico (Camp Fire Zone)": {"lat": 39.7596, "lon": -121.6219, "county": "Butte County", "zoom": 10.0},
+    "Creek Fire Zone / Shaver Lake": {"lat": 37.1041, "lon": -119.3174, "county": "Fresno County", "zoom": 10.0},
+    "Greenville / Quincy (Dixie Fire Zone)": {"lat": 40.1402, "lon": -120.9136, "county": "Plumas County", "zoom": 10.0},
+    "South Lake Tahoe (Caldor Fire Zone)": {"lat": 38.9399, "lon": -119.9772, "county": "El Dorado County", "zoom": 10.0},
+    "Santa Rosa / Napa (Wine Country)": {"lat": 38.4404, "lon": -122.7141, "county": "Sonoma / Napa", "zoom": 9.5},
+    "Yosemite Valley": {"lat": 37.7456, "lon": -119.5936, "county": "Mariposa County", "zoom": 10.0},
+    "Santa Barbara / Montecito": {"lat": 34.4208, "lon": -119.6982, "county": "Santa Barbara County", "zoom": 9.5},
+    "Palm Springs / Coachella": {"lat": 33.8303, "lon": -116.5453, "county": "Riverside County", "zoom": 9.5},
+    "Eureka / Humboldt Coast": {"lat": 40.8021, "lon": -124.1637, "county": "Humboldt County", "zoom": 9.0},
+    "Klamath National Forest": {"lat": 41.5000, "lon": -123.1000, "county": "Siskiyou County", "zoom": 9.0},
+    "Death Valley / Eastern Sierra": {"lat": 36.5323, "lon": -116.9325, "county": "Inyo County", "zoom": 8.5},
+}
+
+# ---------------------------------------------------------------------------
+# Clean White Theme Design System
+# ---------------------------------------------------------------------------
+
+THEME = {
+    "name": "light",
+    "bg_app": "#FFFFFF",
+    "bg_sidebar": "#F8F9FA",
+    "bg_card": "#F8F9FA",
+    "bg_card_solid": "#FFFFFF",
+    "border_card": "#E4E4E7",
+    "text_primary": "#18181B",
+    "text_secondary": "#52525B",
+    "text_muted": "#71717A",
+    "accent_flame": "#DC2626",
+    "accent_flame_light": "#EF4444",
+    "accent_gold": "#D97706",
+    "accent_crimson": "#B91C1C",
+    "modis_color": "#0284C7",
+    "viirs_color": "#EA580C",
+    "median_color": "#059669",
+    "plotly_paper": "rgba(0,0,0,0)",
+    "plotly_plot": "rgba(0,0,0,0)",
+    "plotly_grid": "rgba(0, 0, 0, 0.07)",
+    "plotly_text": "#18181B",
+    "map_style": "carto-positron",
+    "btn_bg": "#18181B",
+    "btn_hover": "#27272A",
+    "btn_text": "#FFFFFF",
+    "colorscale": [
+        [0.00, "#FFFFFF"],
+        [0.05, "#FEF3C7"],
+        [0.30, "#F59E0B"],
+        [0.70, "#DC2626"],
+        [1.00, "#7F1D1D"],
+    ],
 }
 
 def get_current_theme():
-    name = st.session_state.get("theme_choice", "Dark (Black)")
-    return THEMES.get(name, THEMES["Dark (Black)"])
+    return THEME
 
-def get_global_css(t):
+def get_global_css(t=THEME):
     return f"""
 <style>
-/* Base Viewport & Typography */
-html, body, [class*="css"], .stApp {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+/* Base Viewport */
+.stApp {{
     background-color: {t["bg_app"]} !important;
     color: {t["text_primary"]} !important;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }}
 
 /* Sidebar Container */
@@ -197,38 +184,50 @@ html, body, [class*="css"], .stApp {{
     max-width: 1350px !important;
 }}
 
-/* Clean Institutional Stat Cards */
+/* Grounded Stat Cards — No Jumps, No Highlight, Only Letters Bold on Hover */
 [data-testid="stMetric"] {{
     background-color: {t["bg_card"]} !important;
     border: 1px solid {t["border_card"]} !important;
     border-radius: 8px !important;
-    padding: 16px 20px !important;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-    transition: border-color 0.15s ease !important;
+    padding: 14px 18px !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
 }}
 
 [data-testid="stMetric"]:hover {{
-    border-color: {t["text_muted"]} !important;
+    background-color: {t["bg_card"]} !important;
+    border: 1px solid {t["border_card"]} !important;
+    box-shadow: none !important;
+    transform: none !important;
 }}
 
 [data-testid="stMetricLabel"] {{
     color: {t["text_secondary"]} !important;
-    font-size: 0.78rem !important;
+    font-size: 0.80rem !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
 }}
 
-[data-testid="stMetricValue"] {{
+[data-testid="stMetric"]:hover [data-testid="stMetricLabel"] {{
+    font-weight: 700 !important;
     color: {t["text_primary"]} !important;
-    font-size: 1.45rem !important;
-    font-weight: 600 !important;
-    white-space: nowrap !important;
-    letter-spacing: -0.01em !important;
-    line-height: 1.2 !important;
 }}
 
-/* Stable Inputs */
+[data-testid="stMetricValue"] {{
+    color: {t["text_primary"]} !important;
+    font-size: 1.55rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    letter-spacing: -0.01em !important;
+}}
+
+[data-testid="stMetric"]:hover [data-testid="stMetricValue"] {{
+    font-weight: 800 !important;
+}}
+
+/* Stable Inputs — Eliminate Jitters When Clicking Numbers */
 [data-testid="stNumberInput"], [data-testid="stTextInput"], [data-testid="stDateInput"], [data-testid="stSelectbox"] {{
     transform: none !important;
     transition: none !important;
@@ -252,7 +251,7 @@ html, body, [class*="css"], .stApp {{
     color: {t["text_secondary"]} !important;
     border-radius: 6px 6px 0 0 !important;
     font-weight: 500 !important;
-    font-size: 0.88rem !important;
+    font-size: 0.90rem !important;
     padding: 8px 16px !important;
     border: none !important;
     background: transparent !important;
@@ -262,6 +261,7 @@ html, body, [class*="css"], .stApp {{
 
 .stTabs [data-baseweb="tab"]:hover {{
     color: {t["text_primary"]} !important;
+    font-weight: 700 !important;
     background: transparent !important;
     transform: none !important;
 }}
@@ -269,7 +269,7 @@ html, body, [class*="css"], .stApp {{
 .stTabs [data-baseweb="tab"][aria-selected="true"] {{
     color: {t["accent_flame"]} !important;
     border-bottom: 2px solid {t["accent_flame"]} !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
 }}
 
 /* Radio Buttons */
@@ -279,16 +279,16 @@ html, body, [class*="css"], .stApp {{
     border-radius: 6px !important;
     padding: 6px 12px !important;
     cursor: pointer !important;
-    font-size: 0.85rem !important;
     transform: none !important;
     transition: none !important;
 }}
 
 [data-testid="stRadio"] label:hover {{
-    border-color: {t["text_muted"]} !important;
+    border: 1px solid {t["border_card"]} !important;
+    font-weight: 700 !important;
 }}
 
-/* Buttons — Solid, Stable */
+/* Buttons — Solid & Grounded */
 .stButton > button, .stDownloadButton > button {{
     background-color: {t["btn_bg"]} !important;
     color: {t["btn_text"]} !important;
@@ -296,16 +296,16 @@ html, body, [class*="css"], .stApp {{
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 500 !important;
-    font-size: 0.85rem !important;
     box-shadow: none !important;
     transform: none !important;
-    transition: background-color 0.15s ease !important;
+    transition: none !important;
 }}
 
 .stButton > button:hover, .stDownloadButton > button:hover {{
     background-color: {t["btn_hover"]} !important;
     color: {t["btn_text"]} !important;
     border: 1px solid {t["border_card"]} !important;
+    font-weight: 700 !important;
     box-shadow: none !important;
     transform: none !important;
 }}
@@ -318,7 +318,7 @@ html, body, [class*="css"], .stApp {{
 </style>
 """
 
-GLOBAL_CSS = get_global_css(THEMES["Dark (Black)"])
+GLOBAL_CSS = get_global_css(THEME)
 
 # ---------------------------------------------------------------------------
 # Cached Data Loaders
@@ -387,7 +387,7 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
     clipped_min_lat = max(min_lat, c_min_lat)
     clipped_max_lat = min(max_lat, c_min_lat) if max_lat < c_min_lat else min(max_lat, c_max_lat)
     clipped_min_lon = max(min_lon, c_min_lon)
-    clipped_max_lon = min(max_lon, c_max_lon)
+    clipped_max_lon = min(max_lon, c_min_lon)
 
     if (clipped_min_lat != min_lat or clipped_max_lat != max_lat or
         clipped_min_lon != min_lon or clipped_max_lon != max_lon):
@@ -497,21 +497,11 @@ def render_header(theme=None):
     )
 
 # ---------------------------------------------------------------------------
-# Sidebar Controls (Theme Palette on the Left)
+# Sidebar Controls (Coordinate System Preserved)
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
-    st.sidebar.markdown("## Theme")
-    theme_choice = st.sidebar.selectbox(
-        "Palette",
-        options=["Dark (Black)", "Light (White)"],
-        index=0,
-        help="Switch between Dark (Black) and Light (White) theme.",
-    )
-    st.session_state["theme_choice"] = theme_choice
-
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("## Region & Timeframe")
+    st.sidebar.markdown("## Region & Coordinates")
 
     region_choice = st.sidebar.selectbox(
         "Choose Region",
@@ -799,7 +789,7 @@ def render_daily_line(daily_f, region_name, theme=None):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(239, 68, 68, 0.20)",
+        fillcolor="rgba(220, 38, 38, 0.18)",
         line=dict(color="rgba(255,255,255,0)"),
         name="Above median",
     ))
@@ -812,7 +802,7 @@ def render_daily_line(daily_f, region_name, theme=None):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(56, 189, 248, 0.12)",
+        fillcolor="rgba(2, 132, 199, 0.12)",
         line=dict(color="rgba(255,255,255,0)"),
         name="Below median",
     ))
@@ -855,11 +845,9 @@ def render_daily_line(daily_f, region_name, theme=None):
         paper_bgcolor=t["plotly_paper"],
         plot_bgcolor=t["plotly_plot"],
         legend=dict(
-            x=0.99,
+            x=0.01,
             y=0.99,
-            xanchor="right",
-            yanchor="top",
-            font=dict(color=t["plotly_text"], size=10.5),
+            font=dict(color=t["plotly_text"]),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -892,11 +880,18 @@ def render_calendar(daily_f, region_name, theme=None):
 
 
 # ---------------------------------------------------------------------------
-# Spatial Footprint Tab (Where Burning Occurred)
+# Spatial Footprint Tab (Interactive 3D Apple Maps Style Globe & 2D World View)
 # ---------------------------------------------------------------------------
 
 def render_spatial_footprint(det_f, region_name, active_bounds, theme=None):
-    """Render Plotly OpenStreetMap of harmonised hotspot locations."""
+    """
+    Render Spatial Hotspot Footprint with:
+    - 3D Interactive Rotating Earth Globe (Apple Maps style) where you can spin the Earth
+    - 2D Detailed Interactive Map
+    - Corner world view spin control
+    - Small icon toggle to make map fit the entire screen (fullscreen view)
+    - Side bar to find and jump to California cities, counties, or custom coordinates
+    """
     t = theme or get_current_theme()
     if det_f.empty:
         st.info("No hotspots detected for the selected search filters.")
@@ -910,95 +905,232 @@ def render_spatial_footprint(det_f, region_name, active_bounds, theme=None):
     else:
         d_map = det_f.copy()
 
-    # Center coordinates from active bounding box
-    center_lat = (active_bounds["min_lat"] + active_bounds["max_lat"]) / 2.0
-    center_lon = (active_bounds["min_lon"] + active_bounds["max_lon"]) / 2.0
+    # Controls Bar: View Mode, Corner Spin Control, and Fullscreen Icon
+    c_view, c_spin, c_fs = st.columns([2.2, 1.8, 1.2])
 
-    # Dynamic zoom level based on bounding box span
-    lat_span = active_bounds["max_lat"] - active_bounds["min_lat"]
-    lon_span = active_bounds["max_lon"] - active_bounds["min_lon"]
-    max_span = max(lat_span, lon_span)
-    if max_span > 6.0:
-        zoom = 5.0
-    elif max_span > 3.0:
-        zoom = 6.0
-    elif max_span > 1.5:
-        zoom = 7.0
+    with c_view:
+        view_mode = st.radio(
+            "Display Mode",
+            ["🌍 3D Rotating Globe", "🗺️ 2D Interactive Map"],
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+
+    with c_spin:
+        if "3D" in view_mode:
+            spin_deg = st.slider(
+                "🌐 Spin Corner View",
+                min_value=-180,
+                max_value=180,
+                value=-119,
+                step=10,
+                help="Spin the Earth around in 3D. You can also click and drag the globe directly!",
+            )
+        else:
+            map_style_choice = st.selectbox(
+                "Map Layer",
+                ["carto-positron", "open-street-map"],
+                index=0,
+                label_visibility="collapsed",
+            )
+
+    with c_fs:
+        fit_entire_screen = st.toggle(
+            "⛶ Fit Entire Screen",
+            value=False,
+            help="Enlarge map to full screen height and width",
+        )
+
+    # Dynamic Height for Fullscreen
+    map_height = 840 if fit_entire_screen else 520
+
+    # Layout: If fullscreen, map takes full width. Otherwise, side bar on the right.
+    if fit_entire_screen:
+        map_col = st.container()
+        side_bar_col = None
     else:
-        zoom = 8.0
+        map_col, side_bar_col = st.columns([3.2, 1.1])
 
-    fig = go.Figure()
+    # Target Coordinates from Location Finder
+    selected_lat = (active_bounds["min_lat"] + active_bounds["max_lat"]) / 2.0
+    selected_lon = (active_bounds["min_lon"] + active_bounds["max_lon"]) / 2.0
+    selected_zoom = 5.5
 
-    # Separate traces for MODIS (Blue) and VIIRS (Orange)
-    for sensor, color, name in [
-        ("MODIS", t["modis_color"], "MODIS (Reference)"),
-        ("VIIRS", t["viirs_color"], "VIIRS (FRP ≥ 6.5 MW)"),
-    ]:
-        sub = d_map[d_map["sensor"] == sensor]
-        if sub.empty:
-            continue
+    # Location Finder Sidebar (Right Column)
+    if side_bar_col is not None:
+        with side_bar_col:
+            st.markdown("#### 📍 Find Location")
+            st.caption("Quickly find cities, counties, and coordinates:")
 
-        # Scale marker size logarithmically by FRP (2.5 to 8.5 px)
-        sizes = np.clip(np.log1p(sub["frp"].fillna(1)) * 1.5, 2.5, 8.5)
+            loc_name = st.selectbox(
+                "Select City / County",
+                options=list(CALIFORNIA_LOCATIONS.keys()),
+                index=0,
+            )
+            loc_info = CALIFORNIA_LOCATIONS[loc_name]
+            selected_lat = loc_info["lat"]
+            selected_lon = loc_info["lon"]
+            selected_zoom = loc_info["zoom"]
 
-        hover_text = [
-            f"<b>{row.date.strftime('%Y-%m-%d') if hasattr(row.date, 'strftime') else row.date}</b><br>"
-            f"Sensor: {row.sensor} ({row.satellite})<br>"
-            f"FRP: {row.frp:.1f} MW<br>"
-            f"Lat: {row.latitude:.3f}, Lon: {row.longitude:.3f}"
-            for row in sub.itertuples()
-        ]
+            st.markdown(
+                f"""
+                <div style="background-color: #F8F9FA; border: 1px solid #E4E4E7; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.85rem;">
+                  <div style="font-weight: 700; color: #18181B;">{loc_name}</div>
+                  <div style="color: #52525B; font-size: 0.80rem; margin-top: 2px;">{loc_info['county']}</div>
+                  <div style="color: #71717A; font-family: monospace; margin-top: 6px; font-size: 0.78rem;">
+                    Lat: {loc_info['lat']:.4f}°<br>
+                    Lon: {loc_info['lon']:.4f}°
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        fig.add_trace(go.Scattermapbox(
-            lat=sub["latitude"],
-            lon=sub["longitude"],
-            mode="markers",
-            marker=dict(
-                size=sizes,
-                color=color,
-                opacity=0.65,
-            ),
-            name=f"{name} ({len(sub):,} pts)",
-            text=hover_text,
-            hoverinfo="text",
-        ))
+            with st.expander("Custom Coordinates Jump", expanded=False):
+                manual_lat = st.number_input("Lat", value=float(selected_lat), format="%.4f", step=0.1)
+                manual_lon = st.number_input("Lon", value=float(selected_lon), format="%.4f", step=0.1)
+                if st.button("Jump to Coordinates", use_container_width=True):
+                    selected_lat = manual_lat
+                    selected_lon = manual_lon
+                    selected_zoom = 9.0
 
-    fig.update_layout(
-        mapbox=dict(
-            style=t["map_style"],
-            center=dict(lat=center_lat, lon=center_lon),
-            zoom=zoom,
-        ),
-        title=dict(
-            text=f"Spatial Hotspot Footprint — {region_name}",
-            font=dict(color=t["plotly_text"], size=13),
-        ),
-        height=480,
-        margin=dict(l=10, r=10, t=40, b=10),
-        paper_bgcolor=t["plotly_paper"],
-        legend=dict(
-            x=0.01,
-            y=0.99,
-            bgcolor=t["bg_card_solid"],
-            bordercolor=t["border_card"],
-            borderwidth=1,
-            font=dict(color=t["plotly_text"]),
-        ),
-    )
+    # Render Map / Globe inside map_col
+    with map_col:
+        fig = go.Figure()
 
-    st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"spatial_footprint_{region_name}"))
+        # Build Hover Text & Sizes
+        sizes = np.clip(np.log1p(d_map["frp"].fillna(1)) * 1.5, 2.5, 8.5)
 
+        for sensor, color, name in [
+            ("MODIS", t["modis_color"], "MODIS (Reference)"),
+            ("VIIRS", t["accent_flame"], "VIIRS (FRP ≥ 6.5 MW)"),
+        ]:
+            sub = d_map[d_map["sensor"] == sensor]
+            if sub.empty:
+                continue
+
+            sub_sizes = np.clip(np.log1p(sub["frp"].fillna(1)) * 1.5, 2.5, 8.5)
+
+            hover_text = [
+                f"<b>{row.date.strftime('%Y-%m-%d') if hasattr(row.date, 'strftime') else row.date}</b><br>"
+                f"Sensor: {row.sensor} ({row.satellite})<br>"
+                f"FRP: {row.frp:.1f} MW<br>"
+                f"Lat: {row.latitude:.3f}, Lon: {row.longitude:.3f}"
+                for row in sub.itertuples()
+            ]
+
+            if "3D" in view_mode:
+                # 3D Orthographic Globe (Apple Maps style spherical Earth)
+                fig.add_trace(go.Scattergeo(
+                    lat=sub["latitude"],
+                    lon=sub["longitude"],
+                    mode="markers",
+                    marker=dict(
+                        size=sub_sizes,
+                        color=color,
+                        opacity=0.75,
+                    ),
+                    name=f"{name} ({len(sub):,} pts)",
+                    text=hover_text,
+                    hoverinfo="text",
+                ))
+            else:
+                # 2D Mapbox View
+                fig.add_trace(go.Scattermapbox(
+                    lat=sub["latitude"],
+                    lon=sub["longitude"],
+                    mode="markers",
+                    marker=dict(
+                        size=sub_sizes,
+                        color=color,
+                        opacity=0.65,
+                    ),
+                    name=f"{name} ({len(sub):,} pts)",
+                    text=hover_text,
+                    hoverinfo="text",
+                ))
+
+        if "3D" in view_mode:
+            # 3D Rotating Globe Layout
+            effective_lon = spin_deg if 'spin_deg' in locals() else selected_lon
+
+            fig.update_geos(
+                projection_type="orthographic",
+                projection_rotation=dict(lon=effective_lon, lat=selected_lat, roll=0),
+                showocean=True,
+                oceancolor="#E0F2FE",
+                showland=True,
+                landcolor="#F4F4F6",
+                showlakes=True,
+                lakecolor="#E0F2FE",
+                showcountries=True,
+                countrycolor="#CBD5E1",
+                showsubunits=True,
+                subunitcolor="#E2E8F0",
+                showcoastlines=True,
+                coastlinecolor="#94A3B8",
+                coastlinewidth=1,
+                resolution=110,
+                bgcolor="rgba(0,0,0,0)",
+            )
+
+            fig.update_layout(
+                title=dict(
+                    text=f"🌍 3D Earth Globe View — {region_name} (Click & drag Earth to spin)",
+                    font=dict(color=t["plotly_text"], size=13),
+                ),
+                height=map_height,
+                paper_bgcolor=t["plotly_paper"],
+                plot_bgcolor=t["plotly_plot"],
+                margin=dict(l=0, r=0, t=35, b=0),
+                legend=dict(
+                    x=0.01,
+                    y=0.99,
+                    bgcolor=t["bg_card_solid"],
+                    bordercolor=t["border_card"],
+                    borderwidth=1,
+                    font=dict(color=t["plotly_text"]),
+                ),
+            )
+        else:
+            # 2D Mapbox Layout
+            fig.update_layout(
+                mapbox=dict(
+                    style=map_style_choice if 'map_style_choice' in locals() else "carto-positron",
+                    center=dict(lat=selected_lat, lon=selected_lon),
+                    zoom=selected_zoom,
+                ),
+                title=dict(
+                    text=f"🗺️ 2D Interactive Map — {region_name}",
+                    font=dict(color=t["plotly_text"], size=13),
+                ),
+                height=map_height,
+                margin=dict(l=0, r=0, t=35, b=0),
+                paper_bgcolor=t["plotly_paper"],
+                legend=dict(
+                    x=0.01,
+                    y=0.99,
+                    bgcolor=t["bg_card_solid"],
+                    bordercolor=t["border_card"],
+                    borderwidth=1,
+                    font=dict(color=t["plotly_text"]),
+                ),
+            )
+
+        st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"spatial_footprint_{region_name}"))
+
+    # Caption Info
     if sampled:
         st.caption(
             f"ℹ️ Showing **5,000 sampled hotspots** (out of **{total_pts:,}** total in selected region/dates) "
-            "for smooth rendering. Points are colored by sensor: Blue = MODIS, Orange = VIIRS (≥ 6.5 MW). "
-            "Marker size scales logarithmically with Fire Radiative Power (MW)."
+            "for smooth rendering. Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW). "
+            "In 3D Globe mode, click and drag with your mouse to rotate and spin the Earth."
         )
     else:
         st.caption(
             f"ℹ️ Showing **all {total_pts:,} hotspots** in selected region and date range. "
-            "Points are colored by sensor: Blue = MODIS, Orange = VIIRS (≥ 6.5 MW). "
-            "Marker size scales logarithmically with Fire Radiative Power (MW)."
+            "Points: Blue = MODIS, Red = VIIRS (≥ 6.5 MW). "
+            "In 3D Globe mode, click and drag with your mouse to rotate and spin the Earth."
         )
 
 
@@ -1217,11 +1349,9 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
         plot_bgcolor=t["plotly_plot"],
         height=370,
         legend=dict(
-            x=0.99,
+            x=0.01,
             y=0.99,
-            xanchor="right",
-            yanchor="top",
-            font=dict(color=t["plotly_text"], size=10.5),
+            font=dict(color=t["plotly_text"]),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -1319,11 +1449,9 @@ def render_why_harmonisation(daily_f, theme=None):
         paper_bgcolor=t["plotly_paper"],
         plot_bgcolor=t["plotly_plot"],
         legend=dict(
-            x=0.99,
+            x=0.01,
             y=0.99,
-            xanchor="right",
-            yanchor="top",
-            font=dict(color=t["plotly_text"], size=10.5),
+            font=dict(color=t["plotly_text"]),
             bgcolor=t["bg_card_solid"],
             bordercolor=t["border_card"],
             borderwidth=1,
@@ -1481,18 +1609,12 @@ def render_footer(theme=None):
 # ---------------------------------------------------------------------------
 
 def main():
-    # Pre-read theme from session state
-    theme_name = st.session_state.get("theme_choice", "Dark (Black)")
-    theme = THEMES.get(theme_name, THEMES["Dark (Black)"])
+    theme = get_current_theme()
 
     st.markdown(get_global_css(theme), unsafe_allow_html=True)
     render_header(theme)
 
     region_choice, custom_bounds, date_range = render_sidebar()
-
-    # Re-evaluate active theme in case updated in sidebar selectbox during this pass
-    active_theme_name = st.session_state.get("theme_choice", theme_name)
-    theme = THEMES.get(active_theme_name, theme)
 
     daily_statewide = load_statewide_daily()
     detections = load_detections()
