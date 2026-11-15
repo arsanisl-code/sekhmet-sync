@@ -56,6 +56,9 @@ Every headline statistic in Sekhmet Sync is verified and reconciled against raw 
 
 ## Harmonization Method
 
+### Plain-Language Summary
+We count satellite-detected hotspots in California, 2020–2024, after filtering the more sensitive VIIRS sensor so it matches MODIS. MODIS is counted as-is; VIIRS is counted only if it is bright enough (at least 6.5 megawatts). This gives one combined daily count, with a historical median for comparison. The 6.5 threshold is experimental — it was fitted on California data from 2012–2013, and it does not correct for viewing angle or for how many satellites were flying in a given year.
+
 ### The Problem: Sensor Discontinuity
 MODIS (1 km pixel resolution) and VIIRS (375 m pixel resolution) observe fires at vastly different sensitivities. For the exact same fires in California, VIIRS detects over 5.3× more hotspots than MODIS. Treating them interchangeably creates an artificial surge in fire frequency whenever VIIRS data is added.
 
@@ -63,6 +66,45 @@ MODIS (1 km pixel resolution) and VIIRS (375 m pixel resolution) observe fires a
 - **Dropped Spatial Clustering:** The prompt asks for *"number of hotspots detected"*, not synthetic clusters or "fires". Clustering algorithms introduce chaining artifacts (e.g., merging separate blazes into a 5,542-detection mega-fire) and spatial distortion. Sekhmet Sync counts harmonised hotspots directly.
 - **Experimental 6.5 MW Cutoff:** VIIRS 375 m sensors detect faint sub-pixel burns that fall below MODIS detection capabilities. Testing S-NPP vs MODIS on pre-drift California fire records (2012–2013) demonstrated that filtering VIIRS at $\text{FRP} \ge 6.5\text{ MW}$ aligns monthly counts with MODIS at $r = 0.9974$ and $-4.8\%$ bias.
 - **Honest Labeling:** This baseline is empirical and labeled **experimental**; it is not presented as an unchallengeable physical law. Uniform scalar multipliers (e.g., 0.85) were explicitly tested and rejected as physically ungrounded.
+
+### Biome Stability Check (Sub-Region Transferability)
+Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in fast-moving chaparral fires favouring VIIRS 375 m pixels. This is evidence the threshold behaves similarly across forest biomes in California — it is not proof of perfect transfer, and it has not been validated outside California.
+
+| Sub-Region / Biome | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio |
+| :--- | :---: | :---: | :---: | :---: |
+| Northern Forests | 61,204 | 121,237 | 182,441 | 1.98 |
+| Sierra Nevada / Central | 24,522 | 49,235 | 73,757 | 2.01 |
+| Southern Chaparral | 7,350 | 18,199 | 25,549 | 2.48 |
+| **3-Biome Subtotal** | **93,076** | **188,671** | **281,747** | **2.03** |
+
+*Note on Remainder:* The three sub-region bboxes do not cover all of California. 65,427 harmonised detections (18.8% of statewide 347,174) fall outside Northern Forests, Sierra Nevada/Central, and Southern Chaparral — primarily Central Valley, coastal, and inter-bbox areas. (With half-open boundary upper limits, subtotal is 281,739 with 65,435 remainder). They are included in the statewide total, but not in any biome subtotal.
+
+### Constellation Expansion & Annual Breakdown
+Harmonised VIIRS/MODIS ratio was 1.99 in 2020, 1.82 in 2021, 1.36 in 2022, 2.74 in 2023, and 3.21 in 2024. The rise in 2023–2024 coincides with NOAA-21 becoming operational in 2023, giving two VIIRS satellites instead of one. Fire-year variability also affects the ratio (2022 was a low fire year), so this is consistent with, not proof of, satellite-hour scaling. A multi-decade series would need explicit satellite-hour normalisation.
+
+| Observation Year | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio | Active Satellites in Scope |
+| :---: | :---: | :---: | :---: | :---: | :--- |
+| 2020 | 46,823 | 93,269 | 140,092 | 1.99 | Terra, Aqua, NOAA-20 |
+| 2021 | 42,522 | 77,411 | 119,933 | 1.82 | Terra, Aqua, NOAA-20 |
+| 2022 | 6,714 | 9,133 | 15,847 | 1.36 | Terra, Aqua, NOAA-20 |
+| 2023 | 7,222 | 19,774 | 26,996 | 2.74 | Terra, Aqua, NOAA-20, NOAA-21 |
+| 2024 | 10,514 | 33,792 | 44,306 | 3.21 | Terra, Aqua, NOAA-20, NOAA-21 |
+
+### Viewing Zenith Angle (VZA) & Detection Truncation Finding
+In our 2020 MODIS sample, median FRP rises with scan size, from 29.1 MW near nadir (1.0–1.5 km) to 159.8 MW at swath edge (3.0–5.0 km). This is consistent with detection truncation / selection bias: at swath edge, pixel area expands ~10×, background radiance is larger, and faint fires fall below detection — only large fires are seen. A scalar multiplier to 'boost' edge FRP would therefore inflate fires that are already large. This does not rule out FRP underestimation for a given fire at large viewing angle — that would require matched pairs of the same fire seen at nadir and at edge, which we have not done. VZA correction remains a documented frontier, not a solved problem.
+
+| Scan Bin (Pixel Width) | Position in Swath | Detections Count | Mean FRP (MW) | Median FRP (MW) | 75th %ile FRP (MW) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| 1.0 – 1.5 km | Near Nadir | 29,488 | 84.5 MW | 29.1 MW | 68.0 MW |
+| 1.5 – 2.0 km | Mid-Swath | 7,675 | 156.5 MW | 54.6 MW | 124.9 MW |
+| 2.0 – 3.0 km | Off-Nadir | 6,157 | 254.3 MW | 84.2 MW | 200.3 MW |
+| 3.0 – 5.0 km | Swath Edge | 4,633 | 409.1 MW | 159.8 MW | 376.0 MW |
+| **Total Reconciled** | | **47,953** | | | |
+
+*Reconciliation Note:* All 47,953 raw MODIS detections in 2020 reconcile exactly across the 4 bins. (Exactly 11,087 detections fall at nadir `scan == 1.0 km`, which require inclusive lower bin boundaries `[1.0, 1.5]`).
+
+### External Consistency Check (CAL FIRE Incident Archives)
+External check (CAL FIRE 2020 Incident Archive): our peak day, 2020-09-09 (10,320 hotspots), falls during the peak burning of the August Complex (started Aug 16, 2020, 1,032,648 acres) and Creek Fire (started Sep 4, 2020, 379,895 acres). Our 21-day streak, Aug 30 – Sep 19, 2020 (66,764 hotspots), matches the simultaneous explosive growth of the August Complex, Creek Fire, and North Complex (started Aug 17, 2020, 318,935 acres). Furthermore, our 23-day streak, Aug 1–23, 2021 (48,049 hotspots), coincides with the peak run of the Dixie Fire (started Jul 13, 2021, 963,309 acres). This is an external consistency check against official agency incident records, not a formal calibration against post-fire burned area perimeters.
 
 ---
 
@@ -156,6 +198,10 @@ sekhmet-sync/
   - MODIS Collection 6.1 active fire product (Terra and Aqua).
   - VIIRS 375 m active fire products (NOAA-20 and NOAA-21 Standard Processing).
   - Web: [https://firms.modaps.eosdis.nasa.gov/](https://firms.modaps.eosdis.nasa.gov/)
+- **CAL FIRE (California Department of Forestry and Fire Protection):**
+  - 2020 Incident Archive (August Complex, Creek Fire, North Complex): [https://www.fire.ca.gov/incidents/2020](https://www.fire.ca.gov/incidents/2020)
+  - 2021 Incident Archive (Dixie Fire): [https://www.fire.ca.gov/incidents/2021](https://www.fire.ca.gov/incidents/2021)
+  - Accessed: November 2026.
 - **US Census Bureau TIGER/Line:**
   - 2020 California State Boundary Polygon (via PublicaMundi GeoJSON).
 - **OpenStreetMap:**

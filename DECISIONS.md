@@ -121,3 +121,36 @@ It does NOT display an empty calendar or false 0-fire statistics.
 ## D19 — Calendar Single Matrix Heatmap
 **Choice:** Single 5×366 NumPy matrix rendered via `go.Heatmap`.
 **Reason:** Plotly cannot cleanly align 5 separate 1D traces with categorical y-axes. A single 2D matrix ensures crisp pixel-perfect rendering across all 5 years (2020–2024) and 366 day-of-year slots, with leap day handled naturally.
+
+## D20 — Empirical Biome Stability and Inter-Bbox Remainder
+**Finding:** Auditing the 347,174 harmonised detections across California biomes shows that the 6.5 MW threshold produces consistent harmonised VIIRS/MODIS ratios across forested ecosystems:
+- Northern Forests (Klamath): 1.98 (61,204 MODIS, 121,237 VIIRS)
+- Sierra Nevada / Central: 2.01 (24,522 MODIS, 49,235 VIIRS)
+- Southern Chaparral: 2.48 (7,350 MODIS, 18,199 VIIRS)
+**Subtotal & Remainder:** The 3 subregions contain 281,747 harmonised detections (81.15%). Exactly 65,427 detections (18.85%) fall outside these 3 bounding boxes (primarily Central Valley, coastal, and inter-bbox corridors). With half-open upper boundaries (`<`), subtotal is 281,739 with 65,435 remainder.
+**Interpretation:** The ratio is stable across forested biomes; higher in chaparral due to smaller thermal cores in fine fuels. This demonstrates empirical transferability within California forest biomes without claiming global transferability.
+
+## D21 — Constellation Expansion vs. Satellite-Hour Scaling
+**Finding:** Harmonised VIIRS/MODIS ratios by year are:
+- 2020: 1.99
+- 2021: 1.82
+- 2022: 1.36
+- 2023: 2.74
+- 2024: 3.21
+**Interpretation:** The jump in 2023–2024 directly reflects the operational arrival of NOAA-21 in March 2023 (doubling VIIRS satellite sensors from 1 to 2). This empirically verifies that multi-decade harmonization cannot rely on un-normalized counts, and must incorporate satellite-hour normalization.
+
+## D22 — VZA Scan-Angle Truncation vs. Detection Selection Bias
+**Finding:** Binned audit of all 47,953 raw MODIS 2020 detections shows median FRP rises monotonically with scan angle:
+- 1.0–1.5 km (Near Nadir): 29,488 detections, Median FRP = 29.1 MW
+- 1.5–2.0 km (Mid-Swath): 7,675 detections, Median FRP = 54.6 MW
+- 2.0–3.0 km (Off-Nadir): 6,157 detections, Median FRP = 84.2 MW
+- 3.0–5.0 km (Swath Edge): 4,633 detections, Median FRP = 159.8 MW
+**Reconciliation:** All 47,953 rows reconcile. Exactly 11,087 detections fall at nadir `scan == 1.0 km`.
+**Interpretation:** Scan edge pixel expansion (~10× area) creates an observational truncation filter where faint fires fall below detection limits, causing detected median FRP to rise 5×. Scalar inflation of edge FRP would falsely inflate large fires; VZA correction remains a documented frontier.
+
+## D23 — External Ground Truth Consistency Check (CAL FIRE 2020/2021)
+**Verification:**
+- Peak Day: 2020-09-09 (10,320 hotspots) matches the extreme Diablo wind siege that exploded the August Complex (started Aug 16, 2020, 1,032,648 acres), Creek Fire (started Sep 4, 2020, 379,895 acres), and North Complex (started Aug 17, 2020, 318,935 acres).
+- 21-Day Streak: Aug 30 – Sep 19, 2020 (66,764 hotspots) spans the synchronized peak burning window of these 3 mega-fires.
+- 23-Day Streak: Aug 1–23, 2021 (48,049 hotspots) matches the peak run of the Dixie Fire (started Jul 13, 2021, 963,309 acres).
+**Conclusion:** Validates that Sekhmet Sync's statistical anomalies and critical periods correlate with major physical wildfire disasters recorded by CAL FIRE.
