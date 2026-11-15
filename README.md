@@ -109,6 +109,47 @@ In compliance with NASA Space Apps Challenge regulations, the use of AI tools du
 
 ---
 
+## Running Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+Executes the operational verification suite in [`tests/test_lean_pipeline.py`](tests/test_lean_pipeline.py):
+1. `test_daily_series_harmonised_integrity`: Verifies 1,827 continuous days (2020–2024), 0 missing dates, leap day alignment, and reconciled totals (347,174 harmonised hotspots, 10,320 peak day).
+2. `test_detections_integrity`: Verifies all 347,174 detection coordinates fall inside California bounds, checks sensor counts (MODIS 113,795, VIIRS 233,379), and asserts the 6.5 MW VIIRS threshold.
+3. `test_subregion_filtering`: Verifies spatial bounding box slicing for Northern Forests (182,441 hotspots) and Sierra Nevada (73,757 hotspots).
+4. `test_out_of_coverage_rule`: Verifies that coordinates outside California halt with `OUT_OF_COVERAGE`.
+5. `test_sliced_export_fidelity`: Asserts dynamically generated CSV bytes match the selected date and region filters.
+6. `test_app_test_execution_and_views`: Exercises the Streamlit web app and tests all three calendar views (5×366 daily, 5×12 monthly, daily line) with zero exceptions.
+
+---
+
+## Repository Structure & Archived Prototypes
+
+```
+sekhmet-sync/
+  app.py                         # Streamlit web application
+  build_daily_harmonized.py      # Operational daily harmonization pipeline
+  generate_exports.py            # Static PNG generator for briefing packs
+  requirements.txt               # Lightweight runtime dependencies
+  .env.example                   # Sanitized API key template
+  data/
+    daily_series_harmonised.csv  # 1,827-row operational daily series (56 KB)
+    harmonised_detections.csv    # 347,174 harmonised active fire detections (15.6 MB)
+    california.geojson           # US Census Bureau TIGER/Line state boundary
+  exports/                       # Static presentation visualisations (PNG)
+  tests/                         # Active test suite
+    test_lean_pipeline.py
+  archive/                       # Deprecated exploratory code (NOT used by app)
+    legacy_prototype/            # Pre-audit clustering (cluster.py) & 0.85 scaling (harmonize.py)
+```
+
+> [!NOTE]
+> The `archive/` directory contains exploratory prototype code (`cluster.py` and `harmonize.py`) preserved solely for historical transparency. The operational web application and pipeline do **NOT** import or use these files, relying entirely on direct hotspot threshold harmonization.
+
+---
+
 ## Open-Source Citations & Acknowledgments
 
 - **NASA FIRMS (Fire Information for Resource Management System):**
