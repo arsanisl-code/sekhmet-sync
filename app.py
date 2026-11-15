@@ -96,39 +96,6 @@ REGIONS = {
 # ---------------------------------------------------------------------------
 
 THEMES = {
-    "Dark (Black)": {
-        "name": "dark",
-        "bg_app": "#0A0A0B",
-        "bg_sidebar": "#111113",
-        "bg_card": "#161618",
-        "bg_card_solid": "#161618",
-        "border_card": "#27272A",
-        "text_primary": "#F4F4F5",
-        "text_secondary": "#A1A1AA",
-        "text_muted": "#71717A",
-        "accent_flame": "#EF4444",
-        "accent_flame_light": "#F87171",
-        "accent_gold": "#F59E0B",
-        "accent_crimson": "#DC2626",
-        "modis_color": "#38BDF8",
-        "viirs_color": "#FB923C",
-        "median_color": "#10B981",
-        "plotly_paper": "rgba(0,0,0,0)",
-        "plotly_plot": "rgba(0,0,0,0)",
-        "plotly_grid": "rgba(255, 255, 255, 0.08)",
-        "plotly_text": "#F4F4F5",
-        "map_style": "carto-darkmatter",
-        "btn_bg": "#27272A",
-        "btn_hover": "#3F3F46",
-        "btn_text": "#FFFFFF",
-        "colorscale": [
-            [0.00, "#161618"],
-            [0.05, "#1F2937"],
-            [0.25, "#B45309"],
-            [0.55, "#EA580C"],
-            [0.80, "#DC2626"],
-            [1.00, "#FBBF24"],
-        ],
     },
     "Light (White)": {
         "name": "light",
@@ -331,7 +298,8 @@ def get_global_css(t):
 </style>
 """
 
-GLOBAL_CSS = get_global_css(THEMES["Dark (Black)"])
+GLOBAL_CSS = get_global_css(THEME)
+
 
 # ---------------------------------------------------------------------------
 # Cached Data Loaders
@@ -514,16 +482,7 @@ def render_header(theme=None):
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
-    st.sidebar.markdown("## Theme")
-    theme_choice = st.sidebar.selectbox(
-        "Palette",
-        options=["Dark (Black)", "Light (White)"],
-        index=0,
-        help="Switch between Dark (Black) and Light (White) theme.",
-    )
-    st.session_state["theme_choice"] = theme_choice
 
-    st.sidebar.markdown("---")
     st.sidebar.markdown("## Region & Timeframe")
 
     region_choice = st.sidebar.selectbox(
@@ -591,6 +550,10 @@ def render_sidebar():
     )
 
     return region_choice, custom_bounds, (start_date, end_date)
+
+main():
+def get_current_theme():
+    return THEME
 
 # ---------------------------------------------------------------------------
 # Stat Cards
@@ -1488,18 +1451,13 @@ def render_footer(theme=None):
 # ---------------------------------------------------------------------------
 
 def main():
-    # Pre-read theme from session state
-    theme_name = st.session_state.get("theme_choice", "Dark (Black)")
-    theme = THEMES.get(theme_name, THEMES["Dark (Black)"])
-
+ theme=THEME 
+  
     st.markdown(get_global_css(theme), unsafe_allow_html=True)
     render_header(theme)
 
     region_choice, custom_bounds, date_range = render_sidebar()
 
-    # Re-evaluate active theme in case updated in sidebar selectbox during this pass
-    active_theme_name = st.session_state.get("theme_choice", theme_name)
-    theme = THEMES.get(active_theme_name, theme)
 
     daily_statewide = load_statewide_daily()
     detections = load_detections()
