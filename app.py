@@ -14,12 +14,24 @@ No NASA logos. Sekhmet Egyptian Palette (WCAG AA compliant).
 
 import sys
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+
+from situational_awareness import (
+    fetch_nrt_data,
+    harmonize_nrt_data,
+    build_comparison_series,
+    FALLBACK_BANNER_TEXT,
+    PROVENANCE_BANNER_TEXT,
+    THRESHOLD_LABEL_TEXT,
+    EMPTY_STATE_TEXT,
+    CAPTION_TEXT,
+)
 
 # ---------------------------------------------------------------------------
 # Page configuration
@@ -827,6 +839,179 @@ def render_anomaly(daily_f, region_name):
     st.dataframe(top10, use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------
+# Situational Awareness Tab (Provisional NRT & Historical Comparison)
+# ---------------------------------------------------------------------------
+
+def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice):
+    """
+    Render 📡 Situational Awareness tab:
+    - Provenance banner (always visible at top)
+    - Zero API calls on initial load
+    - Empty state when no NRT data fetched yet
+    - Optional '🔄 Fetch Live FIRMS NRT' button with fallback protection
+    - 30-day recent comparison chart: Provisional NRT vs. SP Historical Median
+    - Separate NRT CSV download with provenance column
+    """
+    # 1. Provenance Banner (Exact wording, always visible at the top)
+    st.warning(PROVENANCE_BANNER_TEXT)
+
+    # 2. Coverage Notice for historical baseline
+    if cov_status == "OUT_OF_COVERAGE":
+        st.warning("Selected area is outside the California data archive — no coverage.")
+        st.caption(
+            "Historical median comparison is unavailable for coordinates outside California. "
+            "However, live NASA FIRMS NRT queries are supported globally for your active bounding box."
+        )
+
+    # State key for this region's NRT session data
+    state_key = f"nrt_data_{region_choice}"
+    fallback_key = f"nrt_fallback_{region_choice}"
+
+    # 3. Action controls & fetch button
+    c_btn, c_info = st.columns([1.5, 3.5])
+    with c_btn:
+        fetch_clicked = st.button("🔄 Fetch Live FIRMS NRT", use_container_width=True)
+
+    with c_info:
+        st.caption(
+            f"Active Region: **{region_choice}** | Lat [{active_bounds['min_lat']:.2f}, {active_bounds['max_lat']:.2f}], "
+            f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]"
+        )
+
+    # Handle live fetch button click
+    if fetch_clicked:
+        with st.spinner("Connecting to NASA FIRMS Area API (last 30 days) …"):
+            success, status, raw_nrt_df = fetch_nrt_data(active_bounds, timeout=15)
+            if not success:
+                st.session_state[fallback_key] = True
+                st.session_state[state_key] = None
+            else:
+                st.session_state[fallback_key] = False
+                harm_nrt, stats = harmonize_nrt_data(raw_nrt_df)
+                ts_pt = datetime.now(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d %H:%M:%S %Z")
+                st.session_state[state_key] = {
+                    "harmonised_df": harm_nrt,
+                    "raw_df": raw_nrt_df,
+                    "stats": stats,
+                    "timestamp": ts_pt,
+                    "bounds": active_bounds,
+                }
+
+    # 4. Fallback banner on failure (exact wording)
+    if st.session_state.get(fallback_key, False):
+        st.info(FALLBACK_BANNER_TEXT)
+
+    # Retrieve cached session data if available
+    nrt_session = st.session_state.get(state_key, None)
+    harmonised_nrt_df = nrt_session["harmonised_df"] if nrt_session else None
+
+    # 5. Build 30-day comparison dataframe
+    comp_df = build_comparison_series(
+        harmonised_nrt_df=harmonised_nrt_df,
+        daily_historical=daily_f if cov_status != "OUT_OF_COVERAGE" else None,
+        cov_status=cov_status,
+    )
+
+    # 6. Chart rendering
+    fig = go.Figure()
+
+    # Historical Median trace (if in coverage)
+    if cov_status != "OUT_OF_COVERAGE" and "median_hotspots" in comp_df.columns and comp_df["median_hotspots"].notna().any():
+        fig.add_trace(
+            go.Scatter(
+                x=comp_df["date"],
+                y=comp_df["median_hotspots"],
+                name="Historical median — SP 2020–2024, same day-of-year",
+                mode="lines",
+                line=dict(color="#1B365D", width=2.5, dash="dash"),
+            )
+        )
+
+    # Provisional NRT trace (if live data fetched)
+    has_nrt = harmonised_nrt_df is not None and not harmonised_nrt_df.empty
+    if has_nrt:
+        fig.add_trace(
+            go.Scatter(
+                x=comp_df["date"],
+                y=comp_df["nrt_hotspots"],
+                name="Provisional NRT — daily count (this fetch)",
+                mode="lines+markers",
+                line=dict(color="#A82E2E", width=2.5),
+                marker=dict(size=6, color="#A82E2E"),
+            )
+        )
+
+    clean_region = region_choice.replace(" ", "_").replace("—", "").replace("/", "_").replace("(", "").replace(")", "").strip("_")
+    fig.update_layout(
+        title=dict(
+            text=f"Provisional NRT Observations vs. Historical Median (Last 30 Days) — {region_choice}",
+            font=dict(color="#1C1B1A", size=14),
+        ),
+        xaxis=dict(
+            title="Observation Date",
+            gridcolor="#D4AF37",
+            tickfont=dict(color="#1C1B1A", size=11),
+        ),
+        yaxis=dict(
+            title="Daily Hotspots Count",
+            gridcolor="#D4AF37",
+            tickfont=dict(color="#1C1B1A", size=11),
+        ),
+        paper_bgcolor="#E8DCC4",
+        plot_bgcolor="#E8DCC4",
+        height=380,
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            font=dict(color="#1C1B1A"),
+            bgcolor="rgba(232, 220, 196, 0.8)",
+            bordercolor="#D4AF37",
+            borderwidth=1,
+        ),
+        margin=dict(l=50, r=40, t=50, b=50),
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=get_plotly_config(f"situational_awareness_{clean_region}"),
+    )
+
+    # Caption (exact wording)
+    st.caption(CAPTION_TEXT)
+
+    # 7. Empty state or Audit stats
+    if not has_nrt:
+        st.info(EMPTY_STATE_TEXT)
+    else:
+        stats = nrt_session["stats"]
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        sc1.metric("Raw NRT Fetched", f"{stats['raw_total']:,}")
+        sc2.metric("Harmonised NRT", f"{stats['harmonised_total']:,}")
+        sc3.metric("Filtered Sub-Threshold", f"{stats['filtered_sub_threshold']:,}")
+        sc4.metric("Day Range", "30 Days (Rolling)")
+
+        st.caption(
+            f"**Query Details:** Sources: `MODIS_NRT, VIIRS_SNPP_NRT, VIIRS_NOAA20_NRT, VIIRS_NOAA21_NRT` | "
+            f"Fetch Timestamp: **{nrt_session['timestamp']}** | "
+            f"Bounding Box: Lat [{active_bounds['min_lat']:.2f}, {active_bounds['max_lat']:.2f}], "
+            f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]"
+        )
+        st.caption(f"🔬 *{THRESHOLD_LABEL_TEXT}*")
+
+        # 8. Separate CSV download for NRT data (Section 7 rule)
+        nrt_export = harmonised_nrt_df.copy()
+        nrt_export["provenance"] = "NRT provisional"
+        today_str = date.today().isoformat()
+        st.download_button(
+            label="📥 Download Provisional NRT Detections (CSV)",
+            data=get_csv_bytes(nrt_export),
+            file_name=f"nrt_provisional_{today_str}.csv",
+            mime="text/csv",
+            help="Provisional NRT detections for this fetch. Stored separately from SP archive.",
+        )
+
+# ---------------------------------------------------------------------------
 # Why Harmonisation Tab
 # ---------------------------------------------------------------------------
 
@@ -946,7 +1131,9 @@ def render_method_box():
             - Spatial scope: California state boundary (US Census TIGER/Line 2023).
             - Temporal scope: 2020-01-01 to 2024-12-31 (plus 2011–2013 historical demonstration). Expanding to the full early-2000s to present archive is planned future work.
 
-            **Known Limitations:**
+            **Methodological Frontiers & Known Limitations:**
+            - **Viewing Zenith Angle (VZA) Limitation:** MODIS pixel area expands toward swath edges (the "bow-tie effect"), systematically underestimating FRP for off-nadir observations. While the 6.5 MW threshold achieves aggregate monthly calibration ($r=0.9974$), the next methodological iteration requires a cloud-cleared, VZA-dependent correction using VIIRS 375 m as reference.
+            - **Constellation Expansion Normalization:** Expanding prior to 2020 requires multi-sensor constellation normalization rather than simple aggregation: Terra flew alone from 2000 to mid-2002 (morning orbit missing peak 1–3 PM diurnal fire activity), Aqua joined in 2002, Suomi-NPP VIIRS launched in 2011, NOAA-20 in late 2017, and NOAA-21 in 2023. A 24-year continuous record requires diurnal and satellite-hour weighting to prevent false climate trends.
             - **Industrial Heat / Gas Flares:** Static heat sources (Type 2, ~7% of detections) are retained in the dataset and not filtered out.
             - **Orbital Drift:** Terra and Aqua experienced local overpass time drift post-2021 (Terra drifted earlier by ~44 min, Aqua drifted later by ~40 min by 2024), which affects diurnal sampling.
             - **Baseline:** The historical median is computed across 2020–2024 only, which is heavily influenced by the extreme 2020 California fire season.
@@ -988,15 +1175,17 @@ def main():
         daily_statewide, detections, region_choice, custom_bounds, date_range
     )
 
-    # Handle out-of-coverage rule
+    # Handle out-of-coverage rule for historical baseline
     if cov_status == "OUT_OF_COVERAGE":
         st.warning("Selected area is outside the California data archive — no coverage.")
         st.info(
             f"The California archive covers latitude {CALIFORNIA_BBOX['min_lat']}° to {CALIFORNIA_BBOX['max_lat']}° "
             f"and longitude {CALIFORNIA_BBOX['min_lon']}° to {CALIFORNIA_BBOX['max_lon']}°. "
-            "Please select coordinates within this bounding box."
+            "Historical baseline tabs are restricted to this bounding box. Global live queries are available in the 📡 Situational Awareness tab."
         )
-        st.stop()
+    else:
+        # Render always-visible Stat Cards
+        render_stat_cards(daily_f)
 
     if cov_status == "PARTIAL_OVERLAP":
         st.info(
@@ -1005,32 +1194,46 @@ def main():
             f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]."
         )
 
-    # Render always-visible Stat Cards
-    render_stat_cards(daily_f)
     st.divider()
 
     # Interactive Tabs
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📅 Burning Calendar",
         "🗺️ Spatial Footprint",
         "📈 Anomaly Analysis",
+        "📡 Situational Awareness",
         "❓ Why Harmonisation",
     ])
 
     with tab1:
-        render_calendar(daily_f, region_choice)
+        if cov_status == "OUT_OF_COVERAGE":
+            st.warning("Selected area is outside the California data archive — no coverage.")
+        else:
+            render_calendar(daily_f, region_choice)
 
     with tab2:
-        render_spatial_footprint(det_f, region_choice, active_bounds)
+        if cov_status == "OUT_OF_COVERAGE":
+            st.warning("Selected area is outside the California data archive — no coverage.")
+        else:
+            render_spatial_footprint(det_f, region_choice, active_bounds)
 
     with tab3:
-        render_anomaly(daily_f, region_choice)
+        if cov_status == "OUT_OF_COVERAGE":
+            st.warning("Selected area is outside the California data archive — no coverage.")
+        else:
+            render_anomaly(daily_f, region_choice)
 
     with tab4:
-        render_why_harmonisation(daily_f)
+        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice)
+
+    with tab5:
+        render_why_harmonisation(daily_statewide)
 
     st.divider()
-    render_downloads(daily_f, det_f, region_choice, date_range)
+    if cov_status != "OUT_OF_COVERAGE":
+        render_downloads(daily_f, det_f, region_choice, date_range)
+    else:
+        st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
     render_method_box()
     render_footer()
 
