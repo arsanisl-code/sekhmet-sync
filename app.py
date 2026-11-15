@@ -14,24 +14,12 @@ No NASA logos. Sekhmet Egyptian Palette (WCAG AA compliant).
 
 import sys
 from pathlib import Path
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
+from datetime import date
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-
-from situational_awareness import (
-    fetch_nrt_data,
-    harmonize_nrt_data,
-    build_comparison_series,
-    FALLBACK_BANNER_TEXT,
-    PROVENANCE_BANNER_TEXT,
-    THRESHOLD_LABEL_TEXT,
-    EMPTY_STATE_TEXT,
-    CAPTION_TEXT,
-)
 
 # ---------------------------------------------------------------------------
 # Page configuration
@@ -839,179 +827,6 @@ def render_anomaly(daily_f, region_name):
     st.dataframe(top10, use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------
-# Situational Awareness Tab (Provisional NRT & Historical Comparison)
-# ---------------------------------------------------------------------------
-
-def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice):
-    """
-    Render 📡 Situational Awareness tab:
-    - Provenance banner (always visible at top)
-    - Zero API calls on initial load
-    - Empty state when no NRT data fetched yet
-    - Optional '🔄 Fetch Live FIRMS NRT' button with fallback protection
-    - 30-day recent comparison chart: Provisional NRT vs. SP Historical Median
-    - Separate NRT CSV download with provenance column
-    """
-    # 1. Provenance Banner (Exact wording, always visible at the top)
-    st.warning(PROVENANCE_BANNER_TEXT)
-
-    # 2. Coverage Notice for historical baseline
-    if cov_status == "OUT_OF_COVERAGE":
-        st.warning("Selected area is outside the California data archive — no coverage.")
-        st.caption(
-            "Historical median comparison is unavailable for coordinates outside California. "
-            "However, live NASA FIRMS NRT queries are supported globally for your active bounding box."
-        )
-
-    # State key for this region's NRT session data
-    state_key = f"nrt_data_{region_choice}"
-    fallback_key = f"nrt_fallback_{region_choice}"
-
-    # 3. Action controls & fetch button
-    c_btn, c_info = st.columns([1.5, 3.5])
-    with c_btn:
-        fetch_clicked = st.button("🔄 Fetch Live FIRMS NRT", use_container_width=True)
-
-    with c_info:
-        st.caption(
-            f"Active Region: **{region_choice}** | Lat [{active_bounds['min_lat']:.2f}, {active_bounds['max_lat']:.2f}], "
-            f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]"
-        )
-
-    # Handle live fetch button click
-    if fetch_clicked:
-        with st.spinner("Connecting to NASA FIRMS Area API (last 30 days) …"):
-            success, status, raw_nrt_df = fetch_nrt_data(active_bounds, timeout=15)
-            if not success:
-                st.session_state[fallback_key] = True
-                st.session_state[state_key] = None
-            else:
-                st.session_state[fallback_key] = False
-                harm_nrt, stats = harmonize_nrt_data(raw_nrt_df)
-                ts_pt = datetime.now(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d %H:%M:%S %Z")
-                st.session_state[state_key] = {
-                    "harmonised_df": harm_nrt,
-                    "raw_df": raw_nrt_df,
-                    "stats": stats,
-                    "timestamp": ts_pt,
-                    "bounds": active_bounds,
-                }
-
-    # 4. Fallback banner on failure (exact wording)
-    if st.session_state.get(fallback_key, False):
-        st.info(FALLBACK_BANNER_TEXT)
-
-    # Retrieve cached session data if available
-    nrt_session = st.session_state.get(state_key, None)
-    harmonised_nrt_df = nrt_session["harmonised_df"] if nrt_session else None
-
-    # 5. Build 30-day comparison dataframe
-    comp_df = build_comparison_series(
-        harmonised_nrt_df=harmonised_nrt_df,
-        daily_historical=daily_f if cov_status != "OUT_OF_COVERAGE" else None,
-        cov_status=cov_status,
-    )
-
-    # 6. Chart rendering
-    fig = go.Figure()
-
-    # Historical Median trace (if in coverage)
-    if cov_status != "OUT_OF_COVERAGE" and "median_hotspots" in comp_df.columns and comp_df["median_hotspots"].notna().any():
-        fig.add_trace(
-            go.Scatter(
-                x=comp_df["date"],
-                y=comp_df["median_hotspots"],
-                name="Historical median — SP 2020–2024, same day-of-year",
-                mode="lines",
-                line=dict(color="#1B365D", width=2.5, dash="dash"),
-            )
-        )
-
-    # Provisional NRT trace (if live data fetched)
-    has_nrt = harmonised_nrt_df is not None and not harmonised_nrt_df.empty
-    if has_nrt:
-        fig.add_trace(
-            go.Scatter(
-                x=comp_df["date"],
-                y=comp_df["nrt_hotspots"],
-                name="Provisional NRT — daily count (this fetch)",
-                mode="lines+markers",
-                line=dict(color="#A82E2E", width=2.5),
-                marker=dict(size=6, color="#A82E2E"),
-            )
-        )
-
-    clean_region = region_choice.replace(" ", "_").replace("—", "").replace("/", "_").replace("(", "").replace(")", "").strip("_")
-    fig.update_layout(
-        title=dict(
-            text=f"Provisional NRT Observations vs. Historical Median (Last 30 Days) — {region_choice}",
-            font=dict(color="#1C1B1A", size=14),
-        ),
-        xaxis=dict(
-            title="Observation Date",
-            gridcolor="#D4AF37",
-            tickfont=dict(color="#1C1B1A", size=11),
-        ),
-        yaxis=dict(
-            title="Daily Hotspots Count",
-            gridcolor="#D4AF37",
-            tickfont=dict(color="#1C1B1A", size=11),
-        ),
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
-        height=380,
-        legend=dict(
-            x=0.01,
-            y=0.99,
-            font=dict(color="#1C1B1A"),
-            bgcolor="rgba(232, 220, 196, 0.8)",
-            bordercolor="#D4AF37",
-            borderwidth=1,
-        ),
-        margin=dict(l=50, r=40, t=50, b=50),
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=get_plotly_config(f"situational_awareness_{clean_region}"),
-    )
-
-    # Caption (exact wording)
-    st.caption(CAPTION_TEXT)
-
-    # 7. Empty state or Audit stats
-    if not has_nrt:
-        st.info(EMPTY_STATE_TEXT)
-    else:
-        stats = nrt_session["stats"]
-        sc1, sc2, sc3, sc4 = st.columns(4)
-        sc1.metric("Raw NRT Fetched", f"{stats['raw_total']:,}")
-        sc2.metric("Harmonised NRT", f"{stats['harmonised_total']:,}")
-        sc3.metric("Filtered Sub-Threshold", f"{stats['filtered_sub_threshold']:,}")
-        sc4.metric("Day Range", "30 Days (Rolling)")
-
-        st.caption(
-            f"**Query Details:** Sources: `MODIS_NRT, VIIRS_SNPP_NRT, VIIRS_NOAA20_NRT, VIIRS_NOAA21_NRT` | "
-            f"Fetch Timestamp: **{nrt_session['timestamp']}** | "
-            f"Bounding Box: Lat [{active_bounds['min_lat']:.2f}, {active_bounds['max_lat']:.2f}], "
-            f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]"
-        )
-        st.caption(f"🔬 *{THRESHOLD_LABEL_TEXT}*")
-
-        # 8. Separate CSV download for NRT data (Section 7 rule)
-        nrt_export = harmonised_nrt_df.copy()
-        nrt_export["provenance"] = "NRT provisional"
-        today_str = date.today().isoformat()
-        st.download_button(
-            label="📥 Download Provisional NRT Detections (CSV)",
-            data=get_csv_bytes(nrt_export),
-            file_name=f"nrt_provisional_{today_str}.csv",
-            mime="text/csv",
-            help="Provisional NRT detections for this fetch. Stored separately from SP archive.",
-        )
-
-# ---------------------------------------------------------------------------
 # Why Harmonisation Tab
 # ---------------------------------------------------------------------------
 
@@ -1028,7 +843,7 @@ def render_why_harmonisation(daily_f):
 
         **Sekhmet Sync** applies an empirical **6.5 MW FRP threshold** to VIIRS observations:
         - Faint VIIRS hotspots with FRP < 6.5 MW are filtered out.
-        - The remaining VIIRS hotspots match the observation scale of pre-drift MODIS (r=0.9974).
+        - The remaining VIIRS hotspots match the observation scale of pre-drift MODIS ($r=0.9974$).
         - Result: A consistent daily time series where emergency managers can track fire regimes across sensor eras.
         """
     )
@@ -1121,71 +936,17 @@ def render_method_box():
     with st.expander("📋 Method and Limitations", expanded=False):
         st.markdown(
             r"""
-            **Plain-Language Summary:**  
-            We count satellite-detected hotspots in California, 2020–2024, after filtering the more sensitive VIIRS sensor so it matches MODIS. MODIS is counted as-is; VIIRS is counted only if it is bright enough (at least 6.5 megawatts). This gives one combined daily count, with a historical median for comparison. The 6.5 threshold is experimental — it was fitted on California data from 2012–2013, and it does not correct for viewing angle or for how many satellites were flying in a given year.
-
-            ---
-
             **Harmonization Method:**
-            - **MODIS C6.1 (Terra/Aqua):** Hotspots counted as-is (confidence 30).
-            - **VIIRS NOAA-20/21:** Hotspots filtered with an **experimental 6.5 MW FRP threshold** (confidence  'l'). Faint hotspots below 6.5 MW are removed to calibrate VIIRS sensitivity to the pre-drift MODIS reference scale.
+            - **MODIS C6.1 (Terra/Aqua):** Hotspots counted as-is (confidence $\ge 30$).
+            - **VIIRS NOAA-20/21:** Hotspots filtered with an **experimental 6.5 MW FRP threshold** (confidence $\ne$ 'l'). Faint hotspots below 6.5 MW are removed to calibrate VIIRS sensitivity to the pre-drift MODIS reference scale.
             - *Note:* The 6.5 MW threshold was fitted empirically on California 2012–2013 data; it is not yet globally validated.
-
-            ---
-
-            **Biome Stability Check (Sub-Region Transferability):**  
-            Harmonised VIIRS/MODIS ratio is stable across Northern Forests and Sierra Nevada (1.98 vs 2.01), with a higher ratio in Southern Chaparral (2.48), consistent with smaller thermal cores in fast-moving chaparral fires favouring VIIRS 375 m pixels. This is evidence the threshold behaves similarly across forest biomes in California — it is not proof of perfect transfer, and it has not been validated outside California.
-
-            | Sub-Region / Biome | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio |
-            | :--- | :---: | :---: | :---: | :---: |
-            | Northern Forests | 61,204 | 121,237 | 182,441 | 1.98 |
-            | Sierra Nevada / Central | 24,522 | 49,235 | 73,757 | 2.01 |
-            | Southern Chaparral | 7,350 | 18,199 | 25,549 | 2.48 |
-            | **3-Biome Subtotal** | **93,076** | **188,671** | **281,747** | **2.03** |
-
-            *Note on Remainder:* The three sub-region bboxes do not cover all of California. 65,427 harmonised detections (18.8% of statewide 347,174) fall outside Northern Forests, Sierra Nevada/Central, and Southern Chaparral — primarily Central Valley, coastal, and inter-bbox areas. (With half-open boundary upper limits, subtotal is 281,739 with 65,435 remainder). They are included in the statewide total, but not in any biome subtotal.
-
-            ---
-
-            **Constellation Expansion & Annual Breakdown:**  
-            Harmonised VIIRS/MODIS ratio was 1.99 in 2020, 1.82 in 2021, 1.36 in 2022, 2.74 in 2023, and 3.21 in 2024. The rise in 2023–2024 coincides with NOAA-21 becoming operational in 2023, giving two VIIRS satellites instead of one. Fire-year variability also affects the ratio (2022 was a low fire year), so this is consistent with, not proof of, satellite-hour scaling. A multi-decade series would need explicit satellite-hour normalisation.
-
-            | Observation Year | MODIS (Harm.) | VIIRS (≥ 6.5 MW) | Total Harmonised | Harmonised VIIRS/MODIS Ratio | Active Satellites in Scope |
-            | :---: | :---: | :---: | :---: | :---: | :--- |
-            | 2020 | 46,823 | 93,269 | 140,092 | 1.99 | Terra, Aqua, NOAA-20 |
-            | 2021 | 42,522 | 77,411 | 119,933 | 1.82 | Terra, Aqua, NOAA-20 |
-            | 2022 | 6,714 | 9,133 | 15,847 | 1.36 | Terra, Aqua, NOAA-20 |
-            | 2023 | 7,222 | 19,774 | 26,996 | 2.74 | Terra, Aqua, NOAA-20, NOAA-21 |
-            | 2024 | 10,514 | 33,792 | 44,306 | 3.21 | Terra, Aqua, NOAA-20, NOAA-21 |
-
-            ---
-
-            **Viewing Zenith Angle (VZA) & Detection Truncation Finding:**  
-            In our 2020 MODIS sample, median FRP rises with scan size, from 29.1 MW near nadir (1.0–1.5 km) to 159.8 MW at swath edge (3.0–5.0 km). This is consistent with detection truncation / selection bias: at swath edge, pixel area expands ~10×, background radiance is larger, and faint fires fall below detection — only large fires are seen. A scalar multiplier to 'boost' edge FRP would therefore inflate fires that are already large. This does not rule out FRP underestimation for a given fire at large viewing angle — that would require matched pairs of the same fire seen at nadir and at edge, which we have not done. VZA correction remains a documented frontier, not a solved problem.
-
-            | Scan Bin (Pixel Width) | Position in Swath | Detections Count | Mean FRP (MW) | Median FRP (MW) | 75th %ile FRP (MW) |
-            | :--- | :--- | :---: | :---: | :---: | :---: |
-            | 1.0 – 1.5 km | Near Nadir | 29,488 | 84.5 MW | 29.1 MW | 68.0 MW |
-            | 1.5 – 2.0 km | Mid-Swath | 7,675 | 156.5 MW | 54.6 MW | 124.9 MW |
-            | 2.0 – 3.0 km | Off-Nadir | 6,157 | 254.3 MW | 84.2 MW | 200.3 MW |
-            | 3.0 – 5.0 km | Swath Edge | 4,633 | 409.1 MW | 159.8 MW | 376.0 MW |
-            | **Total Reconciled** | | **47,953** | | | |
-
-            *Reconciliation Note:* All 47,953 raw MODIS detections in 2020 reconcile exactly across the 4 bins. (Exactly 11,087 detections fall at nadir `scan == 1.0 km`, which require inclusive lower bin boundaries `[1.0, 1.5]`).
-
-            ---
-
-            **External Consistency Check (CAL FIRE 2020 & 2021 Archives):**  
-            External check (CAL FIRE 2020 Incident Archive): our peak day, 2020-09-09 (10,320 hotspots), falls during the peak burning of the August Complex (started Aug 16, 2020, 1,032,648 acres) and Creek Fire (started Sep 4, 2020, 379,895 acres). Our 21-day streak, Aug 30 – Sep 19, 2020 (66,764 hotspots), matches the simultaneous explosive growth of the August Complex, Creek Fire, and North Complex (started Aug 17, 2020, 318,935 acres). Furthermore, our 23-day streak, Aug 1–23, 2021 (48,049 hotspots), coincides with the peak run of the Dixie Fire (started Jul 13, 2021, 963,309 acres). This is an external consistency check against official agency incident records, not a formal calibration against post-fire burned area perimeters.
-
-            ---
 
             **Spatial & Temporal Scope:**
             - Data source: NASA Earthdata FIRMS active fire products.
             - Spatial scope: California state boundary (US Census TIGER/Line 2023).
             - Temporal scope: 2020-01-01 to 2024-12-31 (plus 2011–2013 historical demonstration). Expanding to the full early-2000s to present archive is planned future work.
 
-            **Known Scope Limitations:**
+            **Known Limitations:**
             - **Industrial Heat / Gas Flares:** Static heat sources (Type 2, ~7% of detections) are retained in the dataset and not filtered out.
             - **Orbital Drift:** Terra and Aqua experienced local overpass time drift post-2021 (Terra drifted earlier by ~44 min, Aqua drifted later by ~40 min by 2024), which affects diurnal sampling.
             - **Baseline:** The historical median is computed across 2020–2024 only, which is heavily influenced by the extreme 2020 California fire season.
@@ -1227,17 +988,15 @@ def main():
         daily_statewide, detections, region_choice, custom_bounds, date_range
     )
 
-    # Handle out-of-coverage rule for historical baseline
+    # Handle out-of-coverage rule
     if cov_status == "OUT_OF_COVERAGE":
         st.warning("Selected area is outside the California data archive — no coverage.")
         st.info(
             f"The California archive covers latitude {CALIFORNIA_BBOX['min_lat']}° to {CALIFORNIA_BBOX['max_lat']}° "
             f"and longitude {CALIFORNIA_BBOX['min_lon']}° to {CALIFORNIA_BBOX['max_lon']}°. "
-            "Historical baseline tabs are restricted to this bounding box. Global live queries are available in the 📡 Situational Awareness tab."
+            "Please select coordinates within this bounding box."
         )
-    else:
-        # Render always-visible Stat Cards
-        render_stat_cards(daily_f)
+        st.stop()
 
     if cov_status == "PARTIAL_OVERLAP":
         st.info(
@@ -1246,49 +1005,34 @@ def main():
             f"Lon [{active_bounds['min_lon']:.2f}, {active_bounds['max_lon']:.2f}]."
         )
 
+    # Render always-visible Stat Cards
+    render_stat_cards(daily_f)
     st.divider()
 
     # Interactive Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "📅 Burning Calendar",
         "🗺️ Spatial Footprint",
         "📈 Anomaly Analysis",
-        "📡 Situational Awareness",
         "❓ Why Harmonisation",
     ])
 
     with tab1:
-        if cov_status == "OUT_OF_COVERAGE":
-            st.warning("Selected area is outside the California data archive — no coverage.")
-        else:
-            render_calendar(daily_f, region_choice)
+        render_calendar(daily_f, region_choice)
 
     with tab2:
-        if cov_status == "OUT_OF_COVERAGE":
-            st.warning("Selected area is outside the California data archive — no coverage.")
-        else:
-            render_spatial_footprint(det_f, region_choice, active_bounds)
+        render_spatial_footprint(det_f, region_choice, active_bounds)
 
     with tab3:
-        if cov_status == "OUT_OF_COVERAGE":
-            st.warning("Selected area is outside the California data archive — no coverage.")
-        else:
-            render_anomaly(daily_f, region_choice)
+        render_anomaly(daily_f, region_choice)
 
     with tab4:
-        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice)
-
-    with tab5:
-        render_why_harmonisation(daily_statewide)
+        render_why_harmonisation(daily_f)
 
     st.divider()
-    if cov_status != "OUT_OF_COVERAGE":
-        render_downloads(daily_f, det_f, region_choice, date_range)
-    else:
-        st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
+    render_downloads(daily_f, det_f, region_choice, date_range)
     render_method_box()
     render_footer()
 
 if __name__ == "__main__":
     main()
-
