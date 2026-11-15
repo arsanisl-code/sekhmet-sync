@@ -68,3 +68,5 @@ requirements/
 
 # Audit and one-off scripts
 audit_p3d.py
+fetch_extended.py
+data/raw_extended/

@@ -2,6 +2,9 @@
 
 **NASA International Space Apps Challenge 2026 — Harmonization of MODIS and VIIRS Hot Spots**
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://sekhmet-sync.streamlit.app/)
+**Live Web Application:** [https://sekhmet-sync.streamlit.app/](https://sekhmet-sync.streamlit.app/)
+
 Sekhmet Sync harmonizes active-fire hotspot records from MODIS (Terra/Aqua) and VIIRS (NOAA-20/NOAA-21) into a single, consistent **Burning Activity Calendar** for California (2020–2024).
 
 The challenge requires a burning activity calendar based on active fire hotspots, enabling fire managers, emergency responders, and scientists to examine historical burning patterns, anomalies, and critical periods across user-selected regions. Sekhmet Sync delivers this with an honest, empirical harmonization method, accessible visual analytics, responsive layout for low-spec devices (Chromebooks), and dynamic sliced exports.
@@ -110,11 +113,17 @@ External check (CAL FIRE 2020 Incident Archive): our peak day, 2020-09-09 (10,32
 
 ## Quickstart
 
-### 1. Local Run
+### 1. Live Interactive Web Application
+Access the production application directly:
+👉 **[https://sekhmet-sync.streamlit.app/](https://sekhmet-sync.streamlit.app/)**
+
+No installation, setup, or API credentials required to explore the multi-scale burning activity calendar, spatial footprint maps, critical period analysis, and search-matched data exports.
+
+### 2. Local Setup (Optional)
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/sekhmet-sync.git
+git clone https://github.com/arsanisl-code/sekhmet-sync.git
 cd sekhmet-sync
 
 # Install lightweight dependencies
@@ -123,17 +132,15 @@ pip install -r requirements.txt
 # Launch the Streamlit application
 streamlit run app.py
 ```
-Open [http://localhost:8502](http://localhost:8502) in your browser.
 
-### 2. Streamlit Community Cloud Deployment
-The application runs entirely from precomputed, verified CSV files in `data/`:
-- `data/daily_series_harmonised.csv` (56 KB)
-- `data/harmonised_detections.csv` (15.6 MB)
+### 3. Production Deployment & Architecture
+The application is deployed live on Streamlit Community Cloud:
+- **Production URL:** [https://sekhmet-sync.streamlit.app/](https://sekhmet-sync.streamlit.app/)
+- **Data Footprint:** Serves entirely from precomputed, verified CSV files in `data/`:
+  - `data/daily_series_harmonised.csv` (56 KB)
+  - `data/harmonised_detections.csv` (15.6 MB)
 
-Both files are committed to the repository and are well below GitHub's 100 MB limit.
-1. Connect your GitHub repository to [share.streamlit.io](https://share.streamlit.io).
-2. Set Main file path to `app.py`.
-3. Deploy! No database or external API credentials are required to serve the web application.
+Both files are committed to the repository and are well below GitHub's 100 MB limit. No database or external API credentials are required to serve the web application.
 
 ---
 

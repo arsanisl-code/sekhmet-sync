@@ -88,7 +88,8 @@ The burning activity calendar is presented across three complementary temporal s
 ## Slide 7 — Live Demo & Future Vision
 **Title:** Sekhmet Sync — Accessible and Deployable Today
 
-- **Zero-Friction Access:** Runs locally or deploys instantly to Streamlit Community Cloud with precomputed, committed flat files (no heavy database or external API dependencies).
+- **Live Operational Application:** [https://sekhmet-sync.streamlit.app/](https://sekhmet-sync.streamlit.app/) (deployed live on Streamlit Community Cloud).
+- **Zero-Friction Access:** Runs from precomputed, committed flat files with zero database or API setup required for historical analysis.
 - **Chromebook-Ready:** Responsive UI with custom CSS preventing ellipsis truncation on standard 1366×768 screens; WCAG AA/AAA accessible Egyptian palette.
 - **Interactive Multi-Scale Calendar:** Users can toggle between the 5×366 Daily Matrix, 5×12 Monthly Heatmap, and Daily Anomaly Line in one click, plus download search-matched sliced CSVs.
 - **Next Steps:**

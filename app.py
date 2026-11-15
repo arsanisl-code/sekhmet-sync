@@ -249,13 +249,21 @@ def render_header():
     st.markdown(
         """
         <div style="background-color:#1C1B1A;border-bottom:2px solid #D4AF37;
-                    padding:16px 24px;margin-bottom:0">
-          <span style="color:#D4AF37;font-size:1.6rem;font-weight:700">
-            🔥 Sekhmet Sync
-          </span>
-          <span style="color:#D4AF37;font-size:1.0rem;margin-left:12px">
-            — Harmonized Satellite Hotspot Activity Calendar (California 2020–2024)
-          </span>
+                    padding:16px 24px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <span style="color:#D4AF37;font-size:1.6rem;font-weight:700">
+              🔥 Sekhmet Sync
+            </span>
+            <span style="color:#D4AF37;font-size:1.0rem;margin-left:12px">
+              — Harmonized Satellite Hotspot Activity Calendar (California 2020–2024)
+            </span>
+          </div>
+          <div>
+            <a href="https://sekhmet-sync.streamlit.app/" target="_blank"
+               style="color:#D4AF37;text-decoration:none;font-size:0.85rem;border:1px solid #D4AF37;padding:4px 10px;border-radius:4px;">
+              sekhmet-sync.streamlit.app ↗
+            </a>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1199,8 +1207,8 @@ def render_method_box():
 def render_footer():
     st.markdown(
         "<p style='text-align:center;color:#4A4744;font-size:0.8em;margin-top:16px'>"
-        "Sekhmet Sync | Data: NASA FIRMS (public domain) | "
-        "California 2020–2024 | No NASA logos used"
+        "Sekhmet Sync | <a href='https://sekhmet-sync.streamlit.app/' target='_blank' style='color:#7A6B1A;text-decoration:none;font-weight:600;'>sekhmet-sync.streamlit.app</a> | "
+        "Data: NASA FIRMS (public domain) | California 2020–2024 | No NASA logos used"
         "</p>",
         unsafe_allow_html=True,
     )
