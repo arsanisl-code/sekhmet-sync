@@ -9,7 +9,7 @@ Reads precomputed files only:
   - data/harmonised_detections.csv
   - exports/discontinuity.png (optional historical demo)
 
-No NASA logos. Sekhmet Egyptian Palette (WCAG AA compliant).
+No NASA logos. Modern High-Contrast Aerospace & Solar Flame Design System.
 """
 
 import sys
@@ -38,7 +38,7 @@ from situational_awareness import (
 # ---------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Sekhmet Sync",
+    page_title="Sekhmet Sync · Fire Intelligence",
     page_icon="🔥",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -92,33 +92,265 @@ REGIONS = {
 }
 
 # ---------------------------------------------------------------------------
-# Global CSS (Egyptian Palette & Layout Controls)
+# Modern Color Palettes & Design System Themes
 # ---------------------------------------------------------------------------
 
-GLOBAL_CSS = """
+THEMES = {
+    "🌙 Deep Obsidian (Aerospace Dark)": {
+        "name": "dark",
+        "bg_app": "radial-gradient(circle at 50% 0%, #111827 0%, #0A0E17 100%)",
+        "bg_card": "rgba(20, 29, 46, 0.72)",
+        "bg_card_solid": "#131C2E",
+        "border_card": "rgba(255, 255, 255, 0.08)",
+        "border_glow": "rgba(255, 107, 53, 0.35)",
+        "text_primary": "#F8FAFC",
+        "text_secondary": "#94A3B8",
+        "text_muted": "#64748B",
+        "accent_flame": "#FF5722",
+        "accent_flame_light": "#FF8A50",
+        "accent_gold": "#F59E0B",
+        "accent_crimson": "#EF4444",
+        "modis_color": "#00D2FF",
+        "viirs_color": "#FF9500",
+        "median_color": "#10B981",
+        "plotly_paper": "rgba(0,0,0,0)",
+        "plotly_plot": "rgba(0,0,0,0)",
+        "plotly_grid": "rgba(255, 255, 255, 0.07)",
+        "plotly_text": "#F8FAFC",
+        "map_style": "carto-darkmatter",
+        "colorscale": [
+            [0.00, "#0D1524"],
+            [0.05, "#15243B"],
+            [0.25, "#B45309"],
+            [0.55, "#EA580C"],
+            [0.80, "#DC2626"],
+            [1.00, "#FBBF24"],
+        ],
+    },
+    "☀️ Crisp Slate (Modern Light)": {
+        "name": "light",
+        "bg_app": "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #F1F5F9 100%)",
+        "bg_card": "rgba(255, 255, 255, 0.95)",
+        "bg_card_solid": "#FFFFFF",
+        "border_card": "rgba(226, 232, 240, 0.9)",
+        "border_glow": "rgba(234, 88, 12, 0.25)",
+        "text_primary": "#0F172A",
+        "text_secondary": "#475569",
+        "text_muted": "#94A3B8",
+        "accent_flame": "#EA580C",
+        "accent_flame_light": "#F97316",
+        "accent_gold": "#D97706",
+        "accent_crimson": "#DC2626",
+        "modis_color": "#0284C7",
+        "viirs_color": "#D97706",
+        "median_color": "#059669",
+        "plotly_paper": "rgba(0,0,0,0)",
+        "plotly_plot": "rgba(0,0,0,0)",
+        "plotly_grid": "rgba(15, 23, 42, 0.08)",
+        "plotly_text": "#0F172A",
+        "map_style": "carto-positron",
+        "colorscale": [
+            [0.00, "#F8FAFC"],
+            [0.05, "#FEF3C7"],
+            [0.30, "#F59E0B"],
+            [0.70, "#DC2626"],
+            [1.00, "#7F1D1D"],
+        ],
+    },
+    "👑 Sekhmet Gold (Royal Onyx)": {
+        "name": "gold",
+        "bg_app": "radial-gradient(circle at 50% 0%, #1A1714 0%, #0E0D0C 100%)",
+        "bg_card": "rgba(28, 25, 23, 0.85)",
+        "bg_card_solid": "#1C1917",
+        "border_card": "rgba(212, 175, 55, 0.25)",
+        "border_glow": "rgba(212, 175, 55, 0.4)",
+        "text_primary": "#FDF8F0",
+        "text_secondary": "#D4C5B0",
+        "text_muted": "#8C7E6D",
+        "accent_flame": "#D4AF37",
+        "accent_flame_light": "#F3C649",
+        "accent_gold": "#FFD700",
+        "accent_crimson": "#E63946",
+        "modis_color": "#38BDF8",
+        "viirs_color": "#F59E0B",
+        "median_color": "#10B981",
+        "plotly_paper": "rgba(0,0,0,0)",
+        "plotly_plot": "rgba(0,0,0,0)",
+        "plotly_grid": "rgba(212, 175, 55, 0.12)",
+        "plotly_text": "#FDF8F0",
+        "map_style": "carto-darkmatter",
+        "colorscale": [
+            [0.00, "#1C1917"],
+            [0.08, "#2C261A"],
+            [0.35, "#B8860B"],
+            [0.70, "#D9381E"],
+            [1.00, "#FFD700"],
+        ],
+    },
+}
+
+def get_current_theme():
+    name = st.session_state.get("theme_choice", list(THEMES.keys())[0])
+    return THEMES.get(name, THEMES[list(THEMES.keys())[0]])
+
+def get_global_css(t):
+    return f"""
 <style>
-/* Active tab underline in Basalt */
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
-    border-bottom: 3px solid #1C1B1A;
-    color: #1C1B1A;
-    font-weight: 600;
-}
-.stTabs [data-baseweb="tab"] {
-    color: #4A4744;
-}
-/* Stat card metrics: 1.35rem to prevent 8-digit ellipsis truncation */
-[data-testid="stMetricLabel"] {
-    color: #1C1B1A !important;
-    font-size: 0.80rem;
-    font-weight: 500;
-}
-[data-testid="stMetricValue"] {
-    color: #1C1B1A !important;
-    font-size: 1.35rem !important;
-    white-space: nowrap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+html, body, [class*="css"], .stApp {{
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}}
+
+/* Main Application Viewport */
+.stApp {{
+    background: {t["bg_app"]} !important;
+    color: {t["text_primary"]} !important;
+}}
+
+/* Sidebar Container */
+[data-testid="stSidebar"] {{
+    background: {t["bg_card_solid"]} !important;
+    border-right: 1px solid {t["border_card"]} !important;
+}}
+
+[data-testid="stSidebar"] * {{
+    color: {t["text_primary"]} !important;
+}}
+
+.block-container {{
+    padding-top: 1.5rem !important;
+    padding-bottom: 2.5rem !important;
+    max-width: 1400px !important;
+}}
+
+/* High-Contrast Stat Cards (KPIs) */
+[data-testid="stMetric"] {{
+    background: {t["bg_card"]} !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid {t["border_card"]} !important;
+    border-radius: 14px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}}
+
+[data-testid="stMetric"]:hover {{
+    transform: translateY(-2px) !important;
+    border-color: {t["accent_flame"]} !important;
+    box-shadow: 0 8px 24px -2px {t["border_glow"]} !important;
+}}
+
+[data-testid="stMetricLabel"] {{
+    color: {t["text_secondary"]} !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+}}
+
+[data-testid="stMetricValue"] {{
+    color: {t["text_primary"]} !important;
+    font-size: 1.65rem !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+    letter-spacing: -0.02em !important;
+}}
+
+/* Modern Tabs */
+.stTabs [data-baseweb="tab-list"] {{
+    gap: 8px !important;
+    background: transparent !important;
+    border-bottom: 1px solid {t["border_card"]} !important;
+    padding-bottom: 4px !important;
+}}
+
+.stTabs [data-baseweb="tab"] {{
+    color: {t["text_secondary"]} !important;
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    padding: 8px 16px !important;
+    border: none !important;
+    background: transparent !important;
+    transition: all 0.2s ease !important;
+}}
+
+.stTabs [data-baseweb="tab"]:hover {{
+    color: {t["text_primary"]} !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+}}
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] {{
+    color: {t["accent_flame"]} !important;
+    border-bottom: 3px solid {t["accent_flame"]} !important;
+    font-weight: 700 !important;
+}}
+
+/* Horizontal Radio Button Toggle */
+[data-testid="stRadio"] > div {{
+    gap: 10px !important;
+    padding: 4px 0 !important;
+}}
+
+[data-testid="stRadio"] label {{
+    background: {t["bg_card"]} !important;
+    border: 1px solid {t["border_card"]} !important;
+    border-radius: 8px !important;
+    padding: 6px 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}}
+
+[data-testid="stRadio"] label:hover {{
+    border-color: {t["accent_flame"]} !important;
+}}
+
+/* Buttons & Downloads */
+.stButton > button, .stDownloadButton > button {{
+    background: linear-gradient(135deg, {t["accent_flame"]} 0%, {t["accent_flame_light"]} 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 9px !important;
+    padding: 8px 18px !important;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25) !important;
+    transition: all 0.2s ease !important;
+}}
+
+.stButton > button:hover, .stDownloadButton > button:hover {{
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.35) !important;
+    filter: brightness(1.08) !important;
+}}
+
+/* Dataframe styling */
+[data-testid="stDataFrame"] {{
+    border-radius: 10px !important;
+    border: 1px solid {t["border_card"]} !important;
+    overflow: hidden !important;
+}}
+
+/* Smooth Custom Scrollbar */
+::-webkit-scrollbar {{
+    width: 6px;
+    height: 6px;
+}}
+::-webkit-scrollbar-track {{
+    background: transparent;
+}}
+::-webkit-scrollbar-thumb {{
+    background: {t["border_card"]};
+    border-radius: 3px;
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: {t["accent_flame"]};
+}}
 </style>
 """
+
+GLOBAL_CSS = get_global_css(THEMES["🌙 Deep Obsidian (Aerospace Dark)"])
 
 # ---------------------------------------------------------------------------
 # Cached Data Loaders
@@ -185,7 +417,7 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
     # Check for partial overlap
     partially_clipped = False
     clipped_min_lat = max(min_lat, c_min_lat)
-    clipped_max_lat = min(max_lat, c_max_lat)
+    clipped_max_lat = min(max_lat, c_min_lat) if max_lat < c_min_lat else min(max_lat, c_max_lat)
     clipped_min_lon = max(min_lon, c_min_lon)
     clipped_max_lon = min(max_lon, c_max_lon)
 
@@ -245,23 +477,59 @@ def filter_data(daily_statewide, detections, region_choice, custom_bounds, date_
 # Header
 # ---------------------------------------------------------------------------
 
-def render_header():
+def render_header(theme=None):
+    t = theme or get_current_theme()
     st.markdown(
-        """
-        <div style="background-color:#1C1B1A;border-bottom:2px solid #D4AF37;
-                    padding:16px 24px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-          <div>
-            <span style="color:#D4AF37;font-size:1.6rem;font-weight:700">
-              🔥 Sekhmet Sync
-            </span>
-            <span style="color:#D4AF37;font-size:1.0rem;margin-left:12px">
-              — Harmonized Satellite Hotspot Activity Calendar (California 2020–2024)
-            </span>
+        f"""
+        <div style="background: {t['bg_card']};
+                    border: 1px solid {t['border_card']};
+                    border-radius: 16px;
+                    padding: 20px 24px;
+                    margin-bottom: 12px;
+                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.16);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: linear-gradient(135deg, {t['accent_flame']} 0%, {t['accent_gold']} 100%);
+                        width: 48px; height: 48px; border-radius: 12px;
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 1.65rem; box-shadow: 0 4px 18px {t['border_glow']};">
+              🔥
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; color: {t['text_primary']};">
+                  SEKHMET SYNC
+                </span>
+                <span style="background: rgba(255, 87, 34, 0.12); border: 1px solid rgba(255, 87, 34, 0.35);
+                             color: {t['accent_flame']}; font-size: 0.72rem; font-weight: 700; padding: 3px 9px;
+                             border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;">
+                  NASA Space Apps 2026
+                </span>
+                <span style="background: rgba(0, 210, 255, 0.12); border: 1px solid rgba(0, 210, 255, 0.35);
+                             color: {t['modis_color']}; font-size: 0.72rem; font-weight: 700; padding: 3px 9px;
+                             border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;">
+                  MODIS & VIIRS Harmonized
+                </span>
+              </div>
+              <div style="color: {t['text_secondary']}; font-size: 0.88rem; margin-top: 4px; font-weight: 500;">
+                Satellite Wildfire Hotspot Intelligence & Burning Activity Calendar • California (2020–2024)
+              </div>
+            </div>
           </div>
           <div>
             <a href="https://sekhmet-sync.streamlit.app/" target="_blank"
-               style="color:#D4AF37;text-decoration:none;font-size:0.85rem;border:1px solid #D4AF37;padding:4px 10px;border-radius:4px;">
-              sekhmet-sync.streamlit.app ↗
+               style="color: {t['text_primary']}; text-decoration: none; font-size: 0.82rem; font-weight: 600;
+                      background: rgba(255, 255, 255, 0.05); border: 1px solid {t['border_card']};
+                      padding: 7px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;
+                      transition: all 0.2s ease;">
+              <span>sekhmet-sync.streamlit.app</span>
+              <span style="font-size: 0.9em; opacity: 0.7;">↗</span>
             </a>
           </div>
         </div>
@@ -269,10 +537,16 @@ def render_header():
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p style="color:#5E4605;font-size:0.85em;margin-top:6px;margin-bottom:12px">'
-        "⚠️ Harmonization applies an experimental 6.5 MW FRP sensitivity threshold to VIIRS "
-        "to align detection counts with the pre-drift MODIS baseline. See Method & Limitations."
-        "</p>",
+        f"""
+        <div style="background: rgba(245, 158, 11, 0.09); border-left: 3px solid {t['accent_gold']};
+                    border-radius: 0 8px 8px 0; padding: 8px 14px; margin-bottom: 14px;
+                    color: {t['accent_gold']}; font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+          <span>⚠️</span>
+          <span>
+            <strong>Harmonization Notice:</strong> Applies an empirical <strong>6.5 MW FRP sensitivity threshold</strong> to VIIRS, aligning detection counts with pre-drift MODIS baseline sensitivity. See Method & Limitations tab.
+          </span>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -281,6 +555,16 @@ def render_header():
 # ---------------------------------------------------------------------------
 
 def render_sidebar():
+    st.sidebar.markdown("## Visual Theme")
+    theme_choice = st.sidebar.selectbox(
+        "Theme Palette",
+        options=list(THEMES.keys()),
+        index=0,
+        help="Select modern color palette and dashboard visual presentation style.",
+    )
+    st.session_state["theme_choice"] = theme_choice
+
+    st.sidebar.markdown("---")
     st.sidebar.markdown("## Region & Timeframe")
 
     region_choice = st.sidebar.selectbox(
@@ -353,7 +637,7 @@ def render_sidebar():
 # Stat Cards
 # ---------------------------------------------------------------------------
 
-def render_stat_cards(daily_f):
+def render_stat_cards(daily_f, theme=None):
     """Render 4 core KPI cards."""
     total_raw = int(daily_f["raw_modis_hotspots"].sum() + daily_f["raw_viirs_hotspots"].sum())
     total_harm = int(daily_f["harmonised_hotspots"].sum())
@@ -398,8 +682,9 @@ def get_plotly_config(filename="chart"):
     }
 
 
-def render_daily_matrix(daily_f, region_name):
+def render_daily_matrix(daily_f, region_name, theme=None):
     """Render 5x366 Daily Burning Activity Calendar Matrix."""
+    t = theme or get_current_theme()
     years = [2020, 2021, 2022, 2023, 2024]
     d = daily_f.copy()
     d["year"] = d["date"].dt.year
@@ -414,23 +699,19 @@ def render_daily_matrix(daily_f, region_name):
             if 0 <= doy_idx < 366:
                 matrix[i, doy_idx] = float(row["harmonised_hotspots"])
 
-    # Sequential Sekhmet palette (Sand -> Gold -> Crimson -> Deep Crimson)
-    sekhmet_colorscale = [
-        [0.00, "#E8DCC4"],
-        [0.05, "#D8C3A5"],
-        [0.30, "#C68B25"],
-        [0.70, "#A82E2E"],
-        [1.00, "#8B1E1E"],
-    ]
-
     fig = go.Figure(go.Heatmap(
         z=matrix,
         x=list(range(1, 367)),
         y=[str(yr) for yr in years],
-        colorscale=sekhmet_colorscale,
-        colorbar=dict(title="Harmonised Hotspots", tickfont=dict(color="#1C1B1A")),
-        xgap=0.5,
-        ygap=1,
+        colorscale=t["colorscale"],
+        colorbar=dict(
+            title=dict(text="Harmonised Hotspots", font=dict(color=t["plotly_text"], size=11)),
+            tickfont=dict(color=t["plotly_text"], size=10),
+            outlinecolor=t["border_card"],
+            outlinewidth=1,
+        ),
+        xgap=0.6,
+        ygap=1.2,
         zmin=0,
         hovertemplate="Year: %{y}<br>DOY: %{x}<br>Harmonised Hotspots: %{z:.0f}<extra></extra>",
     ))
@@ -439,7 +720,7 @@ def render_daily_matrix(daily_f, region_name):
     month_starts = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
     month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     for ms in month_starts:
-        fig.add_vline(x=ms - 0.5, line_width=0.5, line_color="#D8C3A5", opacity=0.8)
+        fig.add_vline(x=ms - 0.5, line_width=0.6, line_color=t["border_card"], opacity=0.9)
 
     # Dynamic peak callout
     if not d.empty and d["harmonised_hotspots"].sum() > 0:
@@ -454,38 +735,43 @@ def render_daily_matrix(daily_f, region_name):
             text=f"★ Peak: {pk_count:,} hotspots",
             showarrow=True,
             arrowhead=2,
-            arrowcolor="#D4AF37",
-            font=dict(color="#5E4605", size=10),
-            bgcolor="#E8DCC4",
-            bordercolor="#D4AF37",
-            borderwidth=1,
+            arrowcolor=t["accent_flame"],
+            font=dict(color=t["accent_flame_light"], size=10, family="Plus Jakarta Sans, sans-serif"),
+            bgcolor=t["bg_card_solid"],
+            bordercolor=t["accent_flame"],
+            borderwidth=1.5,
+            borderpad=4,
         )
 
     fig.update_layout(
-        title=dict(text=f"Burning Activity Calendar (Daily 5×366) — {region_name}", font=dict(color="#1C1B1A", size=13)),
+        title=dict(
+            text=f"Burning Activity Calendar (Daily 5×366) — {region_name}",
+            font=dict(color=t["plotly_text"], size=14, family="Plus Jakarta Sans, sans-serif"),
+        ),
         xaxis=dict(
             tickmode="array",
             tickvals=[ms + 10 for ms in month_starts],
             ticktext=month_labels,
-            tickfont=dict(color="#1C1B1A", size=9),
+            tickfont=dict(color=t["plotly_text"], size=10),
             showgrid=False,
         ),
-        yaxis=dict(tickfont=dict(color="#1C1B1A"), autorange="reversed"),
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
-        height=290,
+        yaxis=dict(tickfont=dict(color=t["plotly_text"], size=11), autorange="reversed"),
+        paper_bgcolor=t["plotly_paper"],
+        plot_bgcolor=t["plotly_plot"],
+        height=300,
         margin=dict(l=50, r=60, t=45, b=30),
     )
 
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"daily_calendar_{region_name}"))
     st.caption(
         "Rows = years 2020–2024. Columns = day-of-year 1–366. "
-        "Papyrus cells = zero hotspots detected. Grey cells (DOY 366 in non-leap years) = no data."
+        "Darkest cells = zero hotspots detected. Grey cells (DOY 366 in non-leap years) = no data."
     )
 
 
-def render_monthly_heatmap(daily_f, region_name):
+def render_monthly_heatmap(daily_f, region_name, theme=None):
     """Render 5x12 Monthly Burning Activity Heatmap showing macro trends and seasonal patterns."""
+    t = theme or get_current_theme()
     years = [2020, 2021, 2022, 2023, 2024]
     months = list(range(1, 13))
     month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -512,36 +798,36 @@ def render_monthly_heatmap(daily_f, region_name):
                 row_text.append("0")
         text_matrix.append(row_text)
 
-    sekhmet_colorscale = [
-        [0.00, "#E8DCC4"],
-        [0.05, "#D8C3A5"],
-        [0.30, "#C68B25"],
-        [0.70, "#A82E2E"],
-        [1.00, "#8B1E1E"],
-    ]
-
     fig = go.Figure(go.Heatmap(
         z=matrix,
         x=month_labels,
         y=[str(yr) for yr in years],
         text=text_matrix,
         texttemplate="%{text}",
-        textfont=dict(size=11, color="#1C1B1A"),
-        colorscale=sekhmet_colorscale,
-        colorbar=dict(title="Hotspots / Mo", tickfont=dict(color="#1C1B1A")),
-        xgap=2,
-        ygap=2,
+        textfont=dict(size=11, color="#FFFFFF", family="JetBrains Mono, monospace"),
+        colorscale=t["colorscale"],
+        colorbar=dict(
+            title=dict(text="Hotspots / Mo", font=dict(color=t["plotly_text"], size=11)),
+            tickfont=dict(color=t["plotly_text"], size=10),
+            outlinecolor=t["border_card"],
+            outlinewidth=1,
+        ),
+        xgap=3,
+        ygap=3,
         zmin=0,
         hovertemplate="Year: %{y}<br>Month: %{x}<br>Harmonised Hotspots: %{z:,.0f}<extra></extra>",
     ))
 
     fig.update_layout(
-        title=dict(text=f"Monthly Burning Activity Calendar (5×12) — {region_name}", font=dict(color="#1C1B1A", size=13)),
-        xaxis=dict(title="Month", tickfont=dict(color="#1C1B1A")),
-        yaxis=dict(title="Year", tickfont=dict(color="#1C1B1A"), autorange="reversed"),
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
-        height=310,
+        title=dict(
+            text=f"Monthly Burning Activity Calendar (5×12) — {region_name}",
+            font=dict(color=t["plotly_text"], size=14, family="Plus Jakarta Sans, sans-serif"),
+        ),
+        xaxis=dict(title="Month", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        yaxis=dict(title="Year", tickfont=dict(color=t["plotly_text"]), autorange="reversed"),
+        paper_bgcolor=t["plotly_paper"],
+        plot_bgcolor=t["plotly_plot"],
+        height=320,
         margin=dict(l=50, r=60, t=45, b=40),
     )
 
@@ -553,13 +839,14 @@ def render_monthly_heatmap(daily_f, region_name):
     )
 
 
-def render_daily_line(daily_f, region_name):
+def render_daily_line(daily_f, region_name, theme=None):
     """Daily hotspots vs multi-year median line chart."""
+    t = theme or get_current_theme()
     d = daily_f.copy()
 
     fig = go.Figure()
 
-    # Above median fill (Crimson)
+    # Above median fill (Crimson Glow)
     fig.add_trace(go.Scatter(
         x=pd.concat([d["date"], d["date"].iloc[::-1]]),
         y=pd.concat([
@@ -567,12 +854,12 @@ def render_daily_line(daily_f, region_name):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(168,46,46,0.25)",
+        fillcolor="rgba(239, 68, 68, 0.22)",
         line=dict(color="rgba(255,255,255,0)"),
-        name="Above median",
+        name="Above median outbreak",
     ))
 
-    # Below median fill (Lapis)
+    # Below median fill (Cool Cyan/Sapphire Glow)
     fig.add_trace(go.Scatter(
         x=pd.concat([d["date"], d["date"].iloc[::-1]]),
         y=pd.concat([
@@ -580,53 +867,64 @@ def render_daily_line(daily_f, region_name):
             d["median_hotspots"].iloc[::-1],
         ]),
         fill="toself",
-        fillcolor="rgba(27,54,93,0.15)",
+        fillcolor="rgba(6, 182, 212, 0.12)",
         line=dict(color="rgba(255,255,255,0)"),
-        name="Below median",
+        name="Below median quiet",
     ))
 
-    # 5-Year Median line (Malachite dashed)
+    # 5-Year Median line (Emerald dashed)
     fig.add_trace(go.Scatter(
         x=d["date"],
         y=d["median_hotspots"],
-        name="Reference Median (2020–2024)",
-        line=dict(color="#2E6F40", width=2.2, dash="dash"),
+        name="5-Yr Baseline Median",
+        line=dict(color=t["median_color"], width=2.4, dash="dash"),
     ))
 
-    # Observed daily hotspots (Basalt solid)
+    # Observed daily hotspots (Vibrant Flame line)
     fig.add_trace(go.Scatter(
         x=d["date"],
         y=d["harmonised_hotspots"],
-        name="Harmonised Hotspots",
-        line=dict(color="#1C1B1A", width=1.6),
+        name="Harmonised Daily Count",
+        line=dict(color=t["accent_flame_light"], width=1.8),
     ))
 
-    # Top 5 anomaly days (Deep Crimson stars)
+    # Top 5 anomaly days (Stars)
     top5 = d.nlargest(5, "anomaly_hotspots")
     fig.add_trace(go.Scatter(
         x=top5["date"],
         y=top5["harmonised_hotspots"],
         mode="markers",
-        marker=dict(color="#8B1E1E", size=9, symbol="star"),
-        name="Top 5 Anomaly Days",
+        marker=dict(color=t["accent_crimson"], size=10, symbol="star", line=dict(color="#FFFFFF", width=1)),
+        name="Top 5 Anomaly Peaks",
         hovertemplate="%{x}<br>Hotspots: %{y:,}<extra></extra>",
     ))
 
     fig.update_layout(
-        title=dict(text=f"Daily Burning Activity vs. Reference Median — {region_name}", font=dict(color="#1C1B1A", size=13)),
-        xaxis=dict(title="Date", tickfont=dict(color="#1C1B1A")),
-        yaxis=dict(title="Daily Hotspots", tickfont=dict(color="#1C1B1A")),
-        height=360,
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
-        legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
+        title=dict(
+            text=f"Daily Burning Activity vs. Reference Median — {region_name}",
+            font=dict(color=t["plotly_text"], size=14, family="Plus Jakarta Sans, sans-serif"),
+        ),
+        xaxis=dict(title="Date", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        yaxis=dict(title="Daily Hotspots", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        height=370,
+        paper_bgcolor=t["plotly_paper"],
+        plot_bgcolor=t["plotly_plot"],
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            font=dict(color=t["plotly_text"]),
+            bgcolor=t["bg_card_solid"],
+            bordercolor=t["border_card"],
+            borderwidth=1,
+        ),
         margin=dict(l=50, r=40, t=45, b=45),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config(f"anomaly_line_{region_name}"))
 
 
-def render_calendar(daily_f, region_name):
+def render_calendar(daily_f, region_name, theme=None):
     """Burning Activity Calendar container with multi-scale views."""
+    t = theme or get_current_theme()
     cal_mode = st.radio(
         "Calendar View",
         [
@@ -639,19 +937,20 @@ def render_calendar(daily_f, region_name):
     )
 
     if cal_mode == "📅 Daily Matrix (5×366)":
-        render_daily_matrix(daily_f, region_name)
+        render_daily_matrix(daily_f, region_name, t)
     elif cal_mode == "🗓️ Monthly Heatmap (5×12)":
-        render_monthly_heatmap(daily_f, region_name)
+        render_monthly_heatmap(daily_f, region_name, t)
     else:
-        render_daily_line(daily_f, region_name)
+        render_daily_line(daily_f, region_name, t)
 
 
 # ---------------------------------------------------------------------------
 # Spatial Footprint Tab (Where Burning Occurred)
 # ---------------------------------------------------------------------------
 
-def render_spatial_footprint(det_f, region_name, active_bounds):
+def render_spatial_footprint(det_f, region_name, active_bounds, theme=None):
     """Render Plotly OpenStreetMap of harmonised hotspot locations."""
+    t = theme or get_current_theme()
     if det_f.empty:
         st.info("No hotspots detected for the selected search filters.")
         return
@@ -683,10 +982,10 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
 
     fig = go.Figure()
 
-    # Separate traces for MODIS (Lapis) and VIIRS (Amber)
+    # Separate traces for MODIS (Cyan/Sapphire) and VIIRS (Amber/Flame)
     for sensor, color, name in [
-        ("MODIS", "#1B365D", "MODIS (Reference)"),
-        ("VIIRS", "#C68B25", "VIIRS (FRP ≥ 6.5 MW)"),
+        ("MODIS", t["modis_color"], "MODIS (Reference)"),
+        ("VIIRS", t["viirs_color"], "VIIRS (FRP ≥ 6.5 MW)"),
     ]:
         sub = d_map[d_map["sensor"] == sensor]
         if sub.empty:
@@ -710,7 +1009,7 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
             marker=dict(
                 size=sizes,
                 color=color,
-                opacity=0.6,
+                opacity=0.65,
             ),
             name=f"{name} ({len(sub):,} pts)",
             text=hover_text,
@@ -719,24 +1018,24 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
 
     fig.update_layout(
         mapbox=dict(
-            style="open-street-map",
+            style=t["map_style"],
             center=dict(lat=center_lat, lon=center_lon),
             zoom=zoom,
         ),
         title=dict(
             text=f"Spatial Hotspot Footprint — {region_name}",
-            font=dict(color="#1C1B1A", size=13),
+            font=dict(color=t["plotly_text"], size=14, family="Plus Jakarta Sans, sans-serif"),
         ),
-        height=480,
+        height=500,
         margin=dict(l=10, r=10, t=40, b=10),
-        paper_bgcolor="#E8DCC4",
+        paper_bgcolor=t["plotly_paper"],
         legend=dict(
             x=0.01,
             y=0.99,
-            bgcolor="#D8C3A5",
-            bordercolor="#1C1B1A",
+            bgcolor=t["bg_card_solid"],
+            bordercolor=t["border_card"],
             borderwidth=1,
-            font=dict(color="#1C1B1A"),
+            font=dict(color=t["plotly_text"]),
         ),
     )
 
@@ -745,13 +1044,13 @@ def render_spatial_footprint(det_f, region_name, active_bounds):
     if sampled:
         st.caption(
             f"ℹ️ Showing **5,000 sampled hotspots** (out of **{total_pts:,}** total in selected region/dates) "
-            "for smooth, fast rendering. Points are colored by sensor: Lapis = MODIS, Amber = VIIRS (≥ 6.5 MW). "
+            f"for responsive GPU rendering. Points are colored by sensor: Cyan = MODIS, Amber = VIIRS (≥ 6.5 MW). "
             "Marker size scales logarithmically with Fire Radiative Power (MW)."
         )
     else:
         st.caption(
             f"ℹ️ Showing **all {total_pts:,} hotspots** in selected region and date range. "
-            "Points are colored by sensor: Lapis = MODIS, Amber = VIIRS (≥ 6.5 MW). "
+            f"Points are colored by sensor: Cyan = MODIS, Amber = VIIRS (≥ 6.5 MW). "
             "Marker size scales logarithmically with Fire Radiative Power (MW)."
         )
 
@@ -805,12 +1104,13 @@ def calculate_critical_streaks(daily_f, multiplier=3.0, min_streak_len=3):
     return streaks
 
 
-def render_anomaly(daily_f, region_name):
+def render_anomaly(daily_f, region_name, theme=None):
     """Daily hotspots vs multi-year median, season window, critical streaks, and anomaly table."""
+    t = theme or get_current_theme()
     d = daily_f.copy()
 
     # 1. Render the daily line chart
-    render_daily_line(d, region_name)
+    render_daily_line(d, region_name, t)
 
     st.markdown("---")
     st.markdown("### 🚨 Critical Periods & Seasonality Analysis")
@@ -850,7 +1150,7 @@ def render_anomaly(daily_f, region_name):
 # Situational Awareness Tab (Provisional NRT & Historical Comparison)
 # ---------------------------------------------------------------------------
 
-def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice):
+def render_situational_awareness(daily_f, cov_status, active_bounds, region_choice, theme=None):
     """
     Render 📡 Situational Awareness tab:
     - Provenance banner (always visible at top)
@@ -860,6 +1160,7 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
     - 30-day recent comparison chart: Provisional NRT vs. SP Historical Median
     - Separate NRT CSV download with provenance column
     """
+    t = theme or get_current_theme()
     # 1. Provenance Banner (Exact wording, always visible at the top)
     st.warning(PROVENANCE_BANNER_TEXT)
 
@@ -931,7 +1232,7 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
                 y=comp_df["median_hotspots"],
                 name="Historical median — SP 2020–2024, same day-of-year",
                 mode="lines",
-                line=dict(color="#1B365D", width=2.5, dash="dash"),
+                line=dict(color=t["modis_color"], width=2.4, dash="dash"),
             )
         )
 
@@ -944,8 +1245,8 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
                 y=comp_df["nrt_hotspots"],
                 name="Provisional NRT — daily count (this fetch)",
                 mode="lines+markers",
-                line=dict(color="#A82E2E", width=2.5),
-                marker=dict(size=6, color="#A82E2E"),
+                line=dict(color=t["accent_crimson"], width=2.4),
+                marker=dict(size=6, color=t["accent_crimson"]),
             )
         )
 
@@ -953,27 +1254,27 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
     fig.update_layout(
         title=dict(
             text=f"Provisional NRT Observations vs. Historical Median (Last 30 Days) — {region_choice}",
-            font=dict(color="#1C1B1A", size=14),
+            font=dict(color=t["plotly_text"], size=14, family="Plus Jakarta Sans, sans-serif"),
         ),
         xaxis=dict(
             title="Observation Date",
-            gridcolor="#D4AF37",
-            tickfont=dict(color="#1C1B1A", size=11),
+            gridcolor=t["plotly_grid"],
+            tickfont=dict(color=t["plotly_text"], size=11),
         ),
         yaxis=dict(
             title="Daily Hotspots Count",
-            gridcolor="#D4AF37",
-            tickfont=dict(color="#1C1B1A", size=11),
+            gridcolor=t["plotly_grid"],
+            tickfont=dict(color=t["plotly_text"], size=11),
         ),
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
+        paper_bgcolor=t["plotly_paper"],
+        plot_bgcolor=t["plotly_plot"],
         height=380,
         legend=dict(
             x=0.01,
             y=0.99,
-            font=dict(color="#1C1B1A"),
-            bgcolor="rgba(232, 220, 196, 0.8)",
-            bordercolor="#D4AF37",
+            font=dict(color=t["plotly_text"]),
+            bgcolor=t["bg_card_solid"],
+            bordercolor=t["border_card"],
             borderwidth=1,
         ),
         margin=dict(l=50, r=40, t=50, b=50),
@@ -1023,7 +1324,8 @@ def render_situational_awareness(daily_f, cov_status, active_bounds, region_choi
 # Why Harmonisation Tab
 # ---------------------------------------------------------------------------
 
-def render_why_harmonisation(daily_f):
+def render_why_harmonisation(daily_f, theme=None):
+    t = theme or get_current_theme()
     st.markdown(
         """
         ### Why Harmonisation Matters
@@ -1055,19 +1357,26 @@ def render_why_harmonisation(daily_f):
     }).reset_index()
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_modis_hotspots"], name="MODIS (Raw)", marker_color="#1B365D"))
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_viirs_hotspots"], name="VIIRS (Raw)", marker_color="#C68B25"))
-    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["harmonised_hotspots"], name="Harmonised (Thresholded)", marker_color="#A82E2E"))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_modis_hotspots"], name="MODIS (Raw)", marker_color=t["modis_color"]))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["raw_viirs_hotspots"], name="VIIRS (Raw)", marker_color=t["viirs_color"]))
+    fig.add_trace(go.Bar(x=agg["year"].astype(str), y=agg["harmonised_hotspots"], name="Harmonised (Thresholded)", marker_color=t["accent_flame"]))
 
     fig.update_layout(
         barmode="group",
-        title=dict(text="Raw vs. Harmonised Annual Hotspot Counts (Selected Area)", font=dict(color="#1C1B1A")),
-        xaxis=dict(title="Year", tickfont=dict(color="#1C1B1A")),
-        yaxis=dict(title="Total Hotspots", tickfont=dict(color="#1C1B1A")),
-        height=340,
-        paper_bgcolor="#E8DCC4",
-        plot_bgcolor="#E8DCC4",
-        legend=dict(x=0.01, y=0.99, font=dict(color="#1C1B1A")),
+        title=dict(text="Raw vs. Harmonised Annual Hotspot Counts (Selected Area)", font=dict(color=t["plotly_text"], size=14)),
+        xaxis=dict(title="Year", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        yaxis=dict(title="Total Hotspots", tickfont=dict(color=t["plotly_text"]), gridcolor=t["plotly_grid"]),
+        height=350,
+        paper_bgcolor=t["plotly_paper"],
+        plot_bgcolor=t["plotly_plot"],
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            font=dict(color=t["plotly_text"]),
+            bgcolor=t["bg_card_solid"],
+            bordercolor=t["border_card"],
+            borderwidth=1,
+        ),
         margin=dict(l=50, r=40, t=50, b=50),
     )
     st.plotly_chart(fig, use_container_width=True, config=get_plotly_config("annual_sensor_comparison"))
@@ -1076,7 +1385,7 @@ def render_why_harmonisation(daily_f):
 # Search CSV Downloads (Slices to User's Selected Region & Date Range)
 # ---------------------------------------------------------------------------
 
-def render_downloads(daily_f, det_f, region_name, date_range):
+def render_downloads(daily_f, det_f, region_name, date_range, theme=None):
     st.markdown("### Download Search Analytics")
     st.caption(f"Exports are dynamically sliced to your chosen region (**{region_name}**) and dates (**{date_range[0]} to {date_range[1]}**).")
 
@@ -1125,7 +1434,7 @@ def render_downloads(daily_f, det_f, region_name, date_range):
 # Method & Limitations
 # ---------------------------------------------------------------------------
 
-def render_method_box():
+def render_method_box(theme=None):
     with st.expander("📋 Method and Limitations", expanded=False):
         st.markdown(
             r"""
@@ -1204,12 +1513,15 @@ def render_method_box():
 # Footer
 # ---------------------------------------------------------------------------
 
-def render_footer():
+def render_footer(theme=None):
+    t = theme or get_current_theme()
     st.markdown(
-        "<p style='text-align:center;color:#4A4744;font-size:0.8em;margin-top:16px'>"
-        "Sekhmet Sync | <a href='https://sekhmet-sync.streamlit.app/' target='_blank' style='color:#7A6B1A;text-decoration:none;font-weight:600;'>sekhmet-sync.streamlit.app</a> | "
-        "Data: NASA FIRMS (public domain) | California 2020–2024 | No NASA logos used"
-        "</p>",
+        f"""
+        <div style="text-align: center; color: {t['text_muted']}; font-size: 0.82rem; margin-top: 32px; padding-top: 20px; border-top: 1px solid {t['border_card']};">
+          <strong>Sekhmet Sync</strong> • <a href="https://sekhmet-sync.streamlit.app/" target="_blank" style="color: {t['accent_flame']}; text-decoration: none; font-weight: 600;">sekhmet-sync.streamlit.app</a><br>
+          <span style="font-size: 0.78rem; opacity: 0.85;">Data: NASA FIRMS (Public Domain) • California 2020–2024 Archive • No NASA logos used</span>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -1218,10 +1530,18 @@ def render_footer():
 # ---------------------------------------------------------------------------
 
 def main():
-    st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-    render_header()
+    # Pre-read theme from session state
+    theme_name = st.session_state.get("theme_choice", list(THEMES.keys())[0])
+    theme = THEMES.get(theme_name, THEMES[list(THEMES.keys())[0]])
+
+    st.markdown(get_global_css(theme), unsafe_allow_html=True)
+    render_header(theme)
 
     region_choice, custom_bounds, date_range = render_sidebar()
+
+    # Re-evaluate active theme in case updated in sidebar selectbox during this pass
+    active_theme_name = st.session_state.get("theme_choice", theme_name)
+    theme = THEMES.get(active_theme_name, theme)
 
     daily_statewide = load_statewide_daily()
     detections = load_detections()
@@ -1245,7 +1565,7 @@ def main():
         )
     else:
         # Render always-visible Stat Cards
-        render_stat_cards(daily_f)
+        render_stat_cards(daily_f, theme)
 
     if cov_status == "PARTIAL_OVERLAP":
         st.info(
@@ -1269,33 +1589,33 @@ def main():
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_calendar(daily_f, region_choice)
+            render_calendar(daily_f, region_choice, theme)
 
     with tab2:
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_spatial_footprint(det_f, region_choice, active_bounds)
+            render_spatial_footprint(det_f, region_choice, active_bounds, theme)
 
     with tab3:
         if cov_status == "OUT_OF_COVERAGE":
             st.warning("Selected area is outside the California data archive — no coverage.")
         else:
-            render_anomaly(daily_f, region_choice)
+            render_anomaly(daily_f, region_choice, theme)
 
     with tab4:
-        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice)
+        render_situational_awareness(daily_f, cov_status, active_bounds, region_choice, theme)
 
     with tab5:
-        render_why_harmonisation(daily_statewide)
+        render_why_harmonisation(daily_statewide, theme)
 
     st.divider()
     if cov_status != "OUT_OF_COVERAGE":
-        render_downloads(daily_f, det_f, region_choice, date_range)
+        render_downloads(daily_f, det_f, region_choice, date_range, theme)
     else:
         st.info("Historical CSV download unavailable for out-of-coverage bounding box.")
-    render_method_box()
-    render_footer()
+    render_method_box(theme)
+    render_footer(theme)
 
 if __name__ == "__main__":
     main()
